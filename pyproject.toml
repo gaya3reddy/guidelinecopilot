@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guidelinecopilot"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "pydantic",
+  "python-multipart",
+  "requests",
+  "streamlit",
+  "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "ruff",
+  "black",
+  "pre-commit",
+]
+
+[tool.setuptools]
+# IMPORTANT: stop setuptools from “discovering” data/eval/apps randomly
+packages = { find = { include = ["apps.api*", "core*"], exclude = ["apps.ui*", "data*", "eval*", "tests*"] } }
+

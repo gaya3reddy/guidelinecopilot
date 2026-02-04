@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# venv
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Env
+.env
+
+# Streamlit (keep config if needed)
+.streamlit/
+!.streamlit/config.toml
+
+# Data (do not commit PDFs/chunks)
+data/
+!data/.gitkeep
+
+# Logs
+*.log
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
