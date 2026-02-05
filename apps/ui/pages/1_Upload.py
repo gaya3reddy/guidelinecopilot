@@ -24,8 +24,14 @@ if st.button("Ingest", type="primary", disabled=(uploaded is None)):
     if r.status_code >= 400:
         st.error(r.text)
     else:
-        st.success("Ingested ✅ (stub indexing for Day-1)")
-        st.json(r.json())
+        out = r.json()
+
+        msg = f"Ingested ✅ (pages: {out.get('pages')}, chunks: {out.get('chunks_indexed')})"
+        if out.get("deduped"):
+            msg += " — duplicate detected (reused existing doc_id)"
+
+        st.success(msg)
+        st.json(out)
 
 st.markdown("---")
 st.subheader("Available docs")
