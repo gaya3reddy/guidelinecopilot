@@ -3,6 +3,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from dotenv import load_dotenv
+
+ENV_PATH = Path(__file__).resolve().parents[2] / ".env"  # project root/.env
+load_dotenv(dotenv_path=ENV_PATH)
 
 
 def _get_env(name: str, default: str | None = None) -> str:
@@ -54,12 +58,15 @@ class Settings:
         # Make dirs
         raw_dir.mkdir(parents=True, exist_ok=True)
         processed_dir.mkdir(parents=True, exist_ok=True)
+        chroma_dir = processed_dir / "chroma"
+        chroma_dir.mkdir(parents=True, exist_ok=True)
+
 
         if model_provider == "openai" and (openai_api_key is None or openai_api_key.strip() == ""):
             # We allow running without key for Day-1 skeleton (health endpoint),
             # but warn via logs later.
             openai_api_key = None
-
+        print("DEBUG OPENAI_API_KEY loaded:", bool(openai_api_key))
         return Settings(
             app_name=app_name,
             app_version=app_version,

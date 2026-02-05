@@ -34,7 +34,8 @@ python -m venv .venv
 ### 2) Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -U pip
+pip install -e ".[dev]"
 ```
 
 ### 3) Run API

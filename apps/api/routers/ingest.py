@@ -7,6 +7,11 @@ from core.schemas.models import IngestResponse, DocInfo, DocList
 from apps.api.config import settings
 import hashlib
 
+from core.ingestion.pdf_loader import extract_pages
+from core.ingestion.chunker import chunk_pages
+from core.retrieval.embedder import OpenAIEmbedder
+from core.retrieval.vectorstore import ChromaVectorStore
+
 router = APIRouter(tags=["ingestion"])
 
 # Temporary in-memory doc registry for Day-1.
@@ -29,6 +34,8 @@ async def ingest_pdf(
     category: str | None = Form(default=None),
 ) -> IngestResponse:
     start = time.perf_counter()
+    deduped = False
+    message = None
     if file.content_type not in ("application/pdf",):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
 
@@ -71,9 +78,40 @@ async def ingest_pdf(
 
     # Register doc metadata
     _DOCS[safe_doc_id] = DocInfo(doc_id=safe_doc_id, title=title, source=source, category=category)
+    
+    pages = extract_pages(data)
+    page_pairs = [(p.page, p.text) for p in pages]
+    chunks = chunk_pages(page_pairs)
+
+    # Build store + index
+    if settings.model_provider != "openai":
+        raise HTTPException(status_code=400, detail="Only openai provider supported for Day-2 indexing.")
+
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=400, detail="OPENAI_API_KEY is missing.")
+
+    embedder = OpenAIEmbedder(api_key=settings.openai_api_key, model=settings.openai_embed_model)
+    store = ChromaVectorStore(persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder)
+
+    chunks_indexed = store.upsert_chunks(
+        doc_id=safe_doc_id,
+        title=title,
+        source=source,
+        category=category,
+        chunks=[{"id": c.chunk_id, "text": c.text, "page": c.page} for c in chunks],
+    )
+
 
     # Stub counts for Day-1
     latency_ms = int((time.perf_counter() - start) * 1000)
     _ = latency_ms  # placeholder
 
-    return IngestResponse(doc_id=safe_doc_id, chunks_indexed=0, pages=0)
+    # return IngestResponse(doc_id=safe_doc_id, chunks_indexed=0, pages=0)
+    return IngestResponse(
+    doc_id=safe_doc_id,
+    chunks_indexed=chunks_indexed,
+    pages=len(pages),
+    deduped=deduped,
+    message=message,
+)
+
