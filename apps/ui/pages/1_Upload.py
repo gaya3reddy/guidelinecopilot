@@ -32,6 +32,7 @@ if st.button("Ingest", type="primary", disabled=(uploaded is None)):
 
         st.success(msg)
         st.json(out)
+        st.session_state["last_ingested_doc_id"] = out["doc_id"]
 
 st.markdown("---")
 st.subheader("Available docs")
