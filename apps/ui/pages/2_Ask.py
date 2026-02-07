@@ -86,7 +86,8 @@ if run:
                     for c in cits
                 ]
             )
-            st.dataframe(df, use_container_width=True)
+            # st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
             # Detailed evidence expanders
             for i, c in enumerate(cits, start=1):
