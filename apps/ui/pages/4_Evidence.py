@@ -59,7 +59,8 @@ df = pd.DataFrame(
         for c in cits
     ]
 )
-st.dataframe(df, use_container_width=True)
+# st.dataframe(df, use_container_width=True)
+st.dataframe(df, width="stretch")
 
 st.markdown("---")
 st.subheader("Full snippets")

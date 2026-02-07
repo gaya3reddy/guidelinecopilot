@@ -68,7 +68,8 @@ if st.button("Summarize", type="primary"):
                     for c in cits
                 ]
             )
-            st.dataframe(df, use_container_width=True)
+            # st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
             for i, c in enumerate(cits, start=1):
                 with st.expander(f"[{i}] {c['doc_id']} • page {c['page']} • score {c['score']:.3f}"):

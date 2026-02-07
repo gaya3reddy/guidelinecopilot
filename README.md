@@ -32,6 +32,18 @@ Built as a portfolio project for ML/AI internship applications.
 - Evidence tab (audit trail): shows retrieved snippets with `doc_id`, `page`, `chunk_id`, `score`
 - Upload UX improved (shows ingest summary + stores last uploaded `doc_id` in session)
 
+### Day 4
+- Added `/summarize` endpoint: produces *grounded* summaries using retrieved chunks + citations.
+- Supports summary “styles”: `tldr`\ `key_steps` \ `contraindications` \ `eligibility`
+- Updated Streamlit **Summarize** page:
+  - multi-doc selection
+  - style selector
+  - shows summary + citations table + expandable full snippets
+  - stores `last_summary` + payload in session state
+- Updated Streamlit **Evidence** page:
+  - toggle between **Ask** vs **Summarize**
+  - shows last payload + citations + snippets for the selected mode
+
 ---
 
 ## Tech Stack
@@ -108,6 +120,7 @@ Open:
 1) Open Streamlit UI → **Upload** → ingest a public guideline PDF
 2) Go to **Ask** → select the ingested `doc_id` → ask a question
 3) Go to **Evidence** → view retrieved snippets + scores (traceability)
+4) Evidence → inspect citations/snippets from last Ask or last Summarize
 
 ## API Overview
 
@@ -161,7 +174,7 @@ Response includes:
 * [x] Day 1: Ingest UI + doc registry + duplicate detection
 * [x] Day 2: Text extraction + chunking + embeddings + retrieval + `/ask` with citations
 * [x] Day 3: Ask UI polish + Evidence view (audit trail)
-* [ ] Summarize endpoint + UI (grounded summaries + citations)
+* [x] Day 4:Summarize endpoint + UI (grounded summaries + citations) + Evidence tab support
 * [ ] Evaluation suite (latency + citation coverage + faithfulness checks)
 * [ ] Dockerize (docker-compose: api + ui)
 * [ ] CI (ruff + tests)
