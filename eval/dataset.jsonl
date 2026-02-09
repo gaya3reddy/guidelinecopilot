@@ -1,0 +1,4 @@
+{"type":"ask","question":"What is this guideline about?","doc_ids":["doc_b6035cf3"],"top_k":5,"mode":"rag"}
+{"type":"ask","question":"Any contraindications?","doc_ids":["doc_b6035cf3"],"top_k":5,"mode":"rag"}
+{"type":"summarize","doc_ids":["doc_b6035cf3"],"style":"tldr"}
+{"type":"summarize","doc_ids":["doc_b6035cf3"],"style":"key_steps"}
