@@ -20,14 +20,14 @@ Built as a portfolio project for ML/AI internship applications.
 - Streamlit UI for ingest + viewing available docs
 - FastAPI backend
 
-### Day 2 ✅
+### Day 2 
 - PDF text extraction (page-level)
 - Chunking with overlap
 - Embeddings (OpenAI) + persistent vector store (ChromaDB)
 - RAG Q&A endpoint (`POST /ask`) returning **answer + citations**
 - Ingest now returns real counts: `pages`, `chunks_indexed`
 
-### Day 3 ✅
+### Day 3 
 - Streamlit Ask page polished (citations table + expanders)
 - Evidence tab (audit trail): shows retrieved snippets with `doc_id`, `page`, `chunk_id`, `score`
 - Upload UX improved (shows ingest summary + stores last uploaded `doc_id` in session)
@@ -44,6 +44,14 @@ Built as a portfolio project for ML/AI internship applications.
   - toggle between **Ask** vs **Summarize**
   - shows last payload + citations + snippets for the selected mode
 
+### Day 5 
+- Added lightweight evaluation harness (`eval/`) to benchmark RAG quality + performance
+- Metrics tracked:
+  - latency (avg / p95 / max) for `/ask` and `/summarize`
+  - citation coverage (fraction of responses returning citations)
+  - grounding overlap (heuristic token overlap between output and retrieved snippets)
+- Generates a timestamped JSON report in `eval/reports/`
+
 ---
 
 ## Tech Stack
@@ -56,7 +64,6 @@ Built as a portfolio project for ML/AI internship applications.
 
 Planned:
 - Docker / docker-compose (api + ui)
-- Evaluation harness (faithfulness + citation coverage + latency)
 - CI (lint + tests)
 
 ---
@@ -122,6 +129,37 @@ Open:
 3) Go to **Evidence** → view retrieved snippets + scores (traceability)
 4) Evidence → inspect citations/snippets from last Ask or last Summarize
 
+---
+## Evaluation (Day 5)
+
+Run a small benchmark suite against the running API.
+
+### Run
+1) Start API:
+```bash
+uvicorn apps.api.main:app --reload --port 8000
+````
+
+2. Run eval:
+
+```bash
+python -m eval.run_eval
+```
+
+### Output
+
+* Prints summary metrics to console
+* Saves a full JSON report to `eval/reports/report_YYYYMMDD_HHMMSS.json`
+
+### What it measures
+
+* Latency: avg / p95 / max per endpoint
+* Citation coverage: % responses that include citations
+* Grounding overlap (heuristic): overlap between generated text and retrieved snippets
+
+````
+
+
 ## API Overview
 
 ### `POST /ingest`
@@ -175,7 +213,7 @@ Response includes:
 * [x] Day 2: Text extraction + chunking + embeddings + retrieval + `/ask` with citations
 * [x] Day 3: Ask UI polish + Evidence view (audit trail)
 * [x] Day 4:Summarize endpoint + UI (grounded summaries + citations) + Evidence tab support
-* [ ] Evaluation suite (latency + citation coverage + faithfulness checks)
+* [x] Evaluation suite (latency + citation coverage + faithfulness checks)
 * [ ] Dockerize (docker-compose: api + ui)
 * [ ] CI (ruff + tests)
 
