@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Ensure paths resolve inside container
+      DATA_DIR: data
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    volumes:
+      # Persist ingested PDFs + any processed artifacts
+      - ./data:/app/data
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "8501:8501"
+    environment:
+      # UI should call the API service by docker-compose service name
+      API_BASE: http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
