@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy minimal code needed for editable install + better caching
+COPY pyproject.toml /app/pyproject.toml
+COPY apps /app/apps
+COPY core /app/core
+
+# Install CPU-only PyTorch wheels (avoid CUDA downloads)
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir -e .
+
+# Copy the rest (optional, but fine)
+COPY . /app
+
+EXPOSE 8501
+CMD ["streamlit", "run", "apps/ui/Home.py", "--server.address=0.0.0.0", "--server.port=8501"]

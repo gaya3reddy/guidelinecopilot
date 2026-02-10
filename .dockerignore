@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+
+# Git / IDE
+.git/
+.vscode/
+.idea/
+
+# Local artifacts
+guidelinecopilot.egg-info/
+eval/reports/
+data/raw/
+data/processed/

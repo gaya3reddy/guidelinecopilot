@@ -34,3 +34,5 @@ data/
 .pytest_cache/
 .coverage
 htmlcov/
+
+eval/reports/
