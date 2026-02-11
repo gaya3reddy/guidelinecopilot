@@ -1,22 +1,18 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List
-
 import requests
-
 from eval.metrics import summarize_metrics
 
 
+BASE_URL = os.getenv("EVAL_BASE_URL", "http://localhost:8000").rstrip("/")
 DATASET_PATH = Path("eval/dataset.jsonl")
 REPORTS_DIR = Path("eval/reports")
 
-
-import os
-
-BASE_URL = os.getenv("EVAL_BASE_URL", "http://localhost:8000").rstrip("/")
 
 def endpoint_for(kind: str) -> str:
     if kind == "ask":
