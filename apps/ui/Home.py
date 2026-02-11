@@ -18,7 +18,7 @@ try:
     r.raise_for_status()
     data = r.json()
     st.success(f"API connected ✅  ({data.get('service')} v{data.get('version')})")
-except Exception as e:
+except Exception:
     st.error("API not reachable ❌")
     st.info("Start API: `uvicorn apps.api.main:app --reload`")
     st.stop()
