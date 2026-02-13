@@ -23,7 +23,7 @@ GuidelineCopilot is a production-oriented Retrieval-Augmented Generation (RAG) s
 
 ![Architecture](docs/architecture.svg)
 ```
-
+---
 **High-level flow:** PDF ingest → chunking → embeddings → ChromaDB retrieval → cited answers/summaries → evidence/audit trail.
 
 
@@ -37,7 +37,6 @@ GuidelineCopilot is a production-oriented Retrieval-Augmented Generation (RAG) s
 - **ChromaDB** (persistent vector store)
 - **Docker / Docker Compose** (reproducible runtime)
 - **GitHub Actions** (CI)
-
 ---
 
 ## ⚡ Quickstart
