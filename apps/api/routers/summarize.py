@@ -25,7 +25,7 @@ def summarize(req: SummarizeRequest) -> SummarizeResponse:
         out = summarize_guideline(
             style=req.style,
             doc_ids=req.doc_ids,
-            top_k=6,     # keep stable for now-> reduced to8 to 6 to reduce latency and cost, since we do an extra round of re-ranking in the prompt
+            top_k=6,  # keep stable for now-> reduced to8 to 6 to reduce latency and cost, since we do an extra round of re-ranking in the prompt
             mode="rag",  # stable Day-4 scope
         )
     except Exception as e:
@@ -50,7 +50,9 @@ def summarize(req: SummarizeRequest) -> SummarizeResponse:
     meta = Meta(
         request_id=request_id,
         latency_ms=latency_ms,
-        model=settings.openai_chat_model if settings.model_provider == "openai" else settings.model_provider,
+        model=settings.openai_chat_model
+        if settings.model_provider == "openai"
+        else settings.model_provider,
         prompt_version="summarize_v1",
     )
     return SummarizeResponse(summary=out["summary"], citations=citations, meta=meta)

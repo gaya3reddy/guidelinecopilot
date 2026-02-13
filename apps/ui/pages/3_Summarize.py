@@ -20,8 +20,7 @@ except Exception as e:
 doc_options = [d["doc_id"] for d in docs] if docs else []
 # selected = st.multiselect("Choose guideline docs", options=doc_options)
 label_map = {
-    d["doc_id"]: f'{d["doc_id"]} — {d.get("title") or "Untitled"}'
-    for d in docs
+    d["doc_id"]: f"{d['doc_id']} — {d.get('title') or 'Untitled'}" for d in docs
 }
 
 selected = st.multiselect(
@@ -31,7 +30,9 @@ selected = st.multiselect(
 )
 
 
-style = st.radio("Style", ["tldr", "key_steps", "contraindications", "eligibility"], horizontal=True)
+style = st.radio(
+    "Style", ["tldr", "key_steps", "contraindications", "eligibility"], horizontal=True
+)
 
 if st.button("Summarize", type="primary"):
     payload = {"doc_ids": selected, "style": style}
@@ -44,7 +45,7 @@ if st.button("Summarize", type="primary"):
         out = r.json()
         st.session_state["last_summary"] = out
         st.session_state["last_summary_payload"] = payload
-        
+
         with st.expander("Debug (request + raw response)"):
             st.json(payload)
             st.json(out)
@@ -72,7 +73,9 @@ if st.button("Summarize", type="primary"):
             st.dataframe(df, width="stretch")
 
             for i, c in enumerate(cits, start=1):
-                with st.expander(f"[{i}] {c['doc_id']} • page {c['page']} • score {c['score']:.3f}"):
+                with st.expander(
+                    f"[{i}] {c['doc_id']} • page {c['page']} • score {c['score']:.3f}"
+                ):
                     st.write(c["snippet"])
 
         meta = out.get("meta", {})

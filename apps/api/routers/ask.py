@@ -29,7 +29,7 @@ def ask(req: AskRequest) -> AskResponse:
         out = answer_question(
             question=req.question,
             top_k=req.top_k,
-            doc_ids=req.doc_ids,     # list[str]
+            doc_ids=req.doc_ids,  # list[str]
             mode=req.mode,
         )
     except Exception as e:
@@ -55,7 +55,9 @@ def ask(req: AskRequest) -> AskResponse:
     meta = Meta(
         request_id=request_id,
         latency_ms=latency_ms,
-        model=settings.openai_chat_model if settings.model_provider == "openai" else settings.model_provider,
+        model=settings.openai_chat_model
+        if settings.model_provider == "openai"
+        else settings.model_provider,
         prompt_version="ask_v1",
     )
     return AskResponse(answer=out["answer"], citations=citations, meta=meta)

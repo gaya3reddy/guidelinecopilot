@@ -61,8 +61,9 @@ class Settings:
         chroma_dir = processed_dir / "chroma"
         chroma_dir.mkdir(parents=True, exist_ok=True)
 
-
-        if model_provider == "openai" and (openai_api_key is None or openai_api_key.strip() == ""):
+        if model_provider == "openai" and (
+            openai_api_key is None or openai_api_key.strip() == ""
+        ):
             # We allow running without key for Day-1 skeleton (health endpoint),
             # but warn via logs later.
             openai_api_key = None

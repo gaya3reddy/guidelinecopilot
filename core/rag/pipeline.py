@@ -38,8 +38,12 @@ def answer_question(
     if not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY missing. Set it in .env.")
 
-    embedder = OpenAIEmbedder(api_key=settings.openai_api_key, model=settings.openai_embed_model)
-    store = ChromaVectorStore(persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder)
+    embedder = OpenAIEmbedder(
+        api_key=settings.openai_api_key, model=settings.openai_embed_model
+    )
+    store = ChromaVectorStore(
+        persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
+    )
 
     # --- NEW: retrieval logic ---
     retrieved: list[dict] = []
@@ -52,7 +56,10 @@ def answer_question(
         elif len(doc_ids) == 1:
             retrieved = store.query(question=question, top_k=top_k, doc_id=doc_ids[0])
         else:
-            per_doc = [store.query(question=question, top_k=top_k, doc_id=did) for did in doc_ids]
+            per_doc = [
+                store.query(question=question, top_k=top_k, doc_id=did)
+                for did in doc_ids
+            ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
     context = _build_context(retrieved)
@@ -85,6 +92,7 @@ def _summarize_retrieval_query(style: str) -> str:
     if style == "eligibility":
         return "eligibility criteria inclusion exclusion who qualifies indications"
     return "summary overview key recommendations purpose scope"
+
 
 def _summarize_user_prompt(style: str, context: str) -> str:
     style = (style or "tldr").lower()
@@ -120,6 +128,7 @@ Guideline excerpts (cite internally by referring to the numbered blocks):
 {context}
 """
 
+
 def summarize_guideline(
     style: str = "tldr",
     doc_ids: list[str] | None = None,
@@ -132,8 +141,12 @@ def summarize_guideline(
     if not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY missing. Set it in .env.")
 
-    embedder = OpenAIEmbedder(api_key=settings.openai_api_key, model=settings.openai_embed_model)
-    store = ChromaVectorStore(persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder)
+    embedder = OpenAIEmbedder(
+        api_key=settings.openai_api_key, model=settings.openai_embed_model
+    )
+    store = ChromaVectorStore(
+        persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
+    )
 
     retrieved: list[dict] = []
     if mode == "no_rag":
@@ -146,7 +159,9 @@ def summarize_guideline(
         elif len(doc_ids) == 1:
             retrieved = store.query(question=query, top_k=top_k, doc_id=doc_ids[0])
         else:
-            per_doc = [store.query(question=query, top_k=top_k, doc_id=did) for did in doc_ids]
+            per_doc = [
+                store.query(question=query, top_k=top_k, doc_id=did) for did in doc_ids
+            ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
     context = _build_context(retrieved)

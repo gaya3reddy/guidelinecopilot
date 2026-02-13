@@ -28,7 +28,9 @@ def chunk_pages(
             end = min(start + chunk_size, n)
             piece = text[start:end].strip()
             if piece:
-                chunks.append(Chunk(chunk_id=f"p{page_num}_c{idx}", page=page_num, text=piece))
+                chunks.append(
+                    Chunk(chunk_id=f"p{page_num}_c{idx}", page=page_num, text=piece)
+                )
             idx += 1
 
             next_start = end - overlap

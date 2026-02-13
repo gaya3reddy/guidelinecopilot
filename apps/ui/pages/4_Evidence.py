@@ -19,7 +19,9 @@ if last_sum:
     options.append("Summarize")
 
 if not options:
-    st.info("No recent Ask/Summarize result found. Run **Ask** or **Summarize**, then come back here.")
+    st.info(
+        "No recent Ask/Summarize result found. Run **Ask** or **Summarize**, then come back here."
+    )
     st.stop()
 
 mode = st.radio("Show evidence for", options=options, horizontal=True)
@@ -69,5 +71,7 @@ for i, c in enumerate(cits, start=1):
     page = c.get("page", "")
     chunk_id = c.get("chunk_id", "")
     score = float(c.get("score", 0.0))
-    with st.expander(f"[{i}] {doc_id} • page {page} • chunk {chunk_id} • score {score:.3f}"):
+    with st.expander(
+        f"[{i}] {doc_id} • page {page} • chunk {chunk_id} • score {score:.3f}"
+    ):
         st.write(c.get("snippet", ""))

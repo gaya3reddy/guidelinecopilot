@@ -41,7 +41,9 @@ colA, colB = st.columns([2, 1])
 with colA:
     # selected = st.multiselect("Choose guideline docs", options=doc_options)
     default_selected = st.session_state.pop("prefill_doc_ids", [])
-    selected = st.multiselect("Choose guideline docs", options=doc_options, default=default_selected)
+    selected = st.multiselect(
+        "Choose guideline docs", options=doc_options, default=default_selected
+    )
     question = st.text_area(
         "Question",
         height=90,
@@ -51,10 +53,20 @@ with colA:
 with colB:
     mode = st.radio("Mode", options=["rag", "no_rag"], horizontal=True)
     top_k = st.slider("top_k", 1, 10, 5)
-    run = st.button("Ask", type="primary", use_container_width=True, disabled=(len(question.strip()) < 3))
+    run = st.button(
+        "Ask",
+        type="primary",
+        use_container_width=True,
+        disabled=(len(question.strip()) < 3),
+    )
 
 if run:
-    payload = {"question": question.strip(), "doc_ids": selected, "top_k": top_k, "mode": mode}
+    payload = {
+        "question": question.strip(),
+        "doc_ids": selected,
+        "top_k": top_k,
+        "mode": mode,
+    }
     r = requests.post(f"{API_BASE}/ask", json=payload, timeout=90)
 
     if not r.ok:
@@ -91,7 +103,9 @@ if run:
 
             # Detailed evidence expanders
             for i, c in enumerate(cits, start=1):
-                with st.expander(f"[{i}] {c['doc_id']} • page {c['page']} • score {c['score']:.3f}"):
+                with st.expander(
+                    f"[{i}] {c['doc_id']} • page {c['page']} • score {c['score']:.3f}"
+                ):
                     st.write(c["snippet"])
 
         meta = out.get("meta", {})
@@ -99,4 +113,6 @@ if run:
             f"request_id: {meta.get('request_id')} | latency: {meta.get('latency_ms')} ms | model: {meta.get('model')}"
         )
 
-        st.info("Tip: Open the **Evidence** tab to view retrieved snippets as an audit trail.")
+        st.info(
+            "Tip: Open the **Evidence** tab to view retrieved snippets as an audit trail."
+        )

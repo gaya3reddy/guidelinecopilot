@@ -82,7 +82,9 @@ def summarize_metrics(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         # citation coverage + grounding only for responses that have citations
         if endpoint == "ask":
             rag_subset = [r for r in subset if (r.get("mode") or "rag") == "rag"]
-            cov = [1.0 if has_citations(r.get("response", {})) else 0.0 for r in rag_subset]
+            cov = [
+                1.0 if has_citations(r.get("response", {})) else 0.0 for r in rag_subset
+            ]
 
             grounding_scores = []
             for r in rag_subset:

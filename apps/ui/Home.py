@@ -6,7 +6,9 @@ API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 
 st.set_page_config(page_title="GuidelineCopilot", layout="wide")
 st.title("GuidelineCopilot (ClinAssist RAG)")
-st.caption("Evidence-grounded Q&A + summarization over public guideline PDFs (educational use).")
+st.caption(
+    "Evidence-grounded Q&A + summarization over public guideline PDFs (educational use)."
+)
 
 with st.sidebar:
     st.subheader("API")

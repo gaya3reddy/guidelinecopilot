@@ -22,7 +22,6 @@ def endpoint_for(kind: str) -> str:
     raise ValueError(f"Unknown type: {kind}")
 
 
-
 def load_jsonl(path: str):
     rows = []
     with open(path, "r", encoding="utf-8") as f:
@@ -46,6 +45,7 @@ def post_json(url: str, payload: dict):
     r.raise_for_status()
     return r.json()
 
+
 def main() -> None:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -54,7 +54,7 @@ def main() -> None:
 
     for i, ex in enumerate(dataset, start=1):
         kind = ex.get("type", "ask")  # "ask" or "summarize"
-        
+
         payload = dict(ex)
         payload.pop("type", None)
         payload.pop("id", None)
@@ -66,20 +66,18 @@ def main() -> None:
         t0 = time.perf_counter()
         resp = post_json(url, payload)
         dt_ms = (time.perf_counter() - t0) * 1000.0
-        
-             
+
         results.append(
             {
                 "id": ex.get("id", f"ex_{i}"),
-                "endpoint": kind,          # <-- IMPORTANT: "ask" or "summarize"
-                "url": url,                # optional, but useful for debugging
+                "endpoint": kind,  # <-- IMPORTANT: "ask" or "summarize"
+                "url": url,  # optional, but useful for debugging
                 "mode": payload.get("mode"),
                 "latency_ms": dt_ms,
                 "request": payload,
                 "response": resp,
             }
         )
-
 
         print(f"[{i}/{len(dataset)}] {kind} {dt_ms:.0f} ms")
 

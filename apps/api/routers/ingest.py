@@ -51,47 +51,57 @@ async def ingest_pdf(
             chunks_indexed=0,
             pages=0,
             deduped=True,
-            message="Duplicate PDF detected — returning existing doc_id."
+            message="Duplicate PDF detected — returning existing doc_id.",
         )
 
-    
-    
     max_bytes = settings.max_upload_mb * 1024 * 1024
     if len(data) > max_bytes:
-        raise HTTPException(status_code=413, detail=f"File too large. Max {settings.max_upload_mb} MB.")
+        raise HTTPException(
+            status_code=413, detail=f"File too large. Max {settings.max_upload_mb} MB."
+        )
 
-        
     # Choose doc_id
     # safe_doc_id = (doc_id or f"doc_{uuid.uuid4().hex[:8]}").strip()
     safe_doc_id = (doc_id or "").strip()
     if not safe_doc_id or safe_doc_id.lower() == "string":
         safe_doc_id = f"doc_{uuid.uuid4().hex[:8]}"
-    
+
     _HASH_TO_DOC[file_hash] = safe_doc_id
-    
+
     if safe_doc_id in _DOCS:
-        raise HTTPException(status_code=400, detail=f"doc_id '{safe_doc_id}' already exists. Choose a different doc_id.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"doc_id '{safe_doc_id}' already exists. Choose a different doc_id.",
+        )
 
     # Save raw PDF (Day-2 will also extract pages)
     out_path = settings.raw_dir / f"{safe_doc_id}.pdf"
     out_path.write_bytes(data)
 
     # Register doc metadata
-    _DOCS[safe_doc_id] = DocInfo(doc_id=safe_doc_id, title=title, source=source, category=category)
-    
+    _DOCS[safe_doc_id] = DocInfo(
+        doc_id=safe_doc_id, title=title, source=source, category=category
+    )
+
     pages = extract_pages(data)
     page_pairs = [(p.page, p.text) for p in pages]
     chunks = chunk_pages(page_pairs)
 
     # Build store + index
     if settings.model_provider != "openai":
-        raise HTTPException(status_code=400, detail="Only openai provider supported for Day-2 indexing.")
+        raise HTTPException(
+            status_code=400, detail="Only openai provider supported for Day-2 indexing."
+        )
 
     if not settings.openai_api_key:
         raise HTTPException(status_code=400, detail="OPENAI_API_KEY is missing.")
 
-    embedder = OpenAIEmbedder(api_key=settings.openai_api_key, model=settings.openai_embed_model)
-    store = ChromaVectorStore(persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder)
+    embedder = OpenAIEmbedder(
+        api_key=settings.openai_api_key, model=settings.openai_embed_model
+    )
+    store = ChromaVectorStore(
+        persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
+    )
 
     chunks_indexed = store.upsert_chunks(
         doc_id=safe_doc_id,
@@ -101,17 +111,15 @@ async def ingest_pdf(
         chunks=[{"id": c.chunk_id, "text": c.text, "page": c.page} for c in chunks],
     )
 
-
     # Stub counts for Day-1
     latency_ms = int((time.perf_counter() - start) * 1000)
     _ = latency_ms  # placeholder
 
     # return IngestResponse(doc_id=safe_doc_id, chunks_indexed=0, pages=0)
     return IngestResponse(
-    doc_id=safe_doc_id,
-    chunks_indexed=chunks_indexed,
-    pages=len(pages),
-    deduped=deduped,
-    message=message,
-)
-
+        doc_id=safe_doc_id,
+        chunks_indexed=chunks_indexed,
+        pages=len(pages),
+        deduped=deduped,
+        message=message,
+    )

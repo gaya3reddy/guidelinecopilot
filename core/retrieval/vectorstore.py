@@ -9,7 +9,12 @@ from core.retrieval.embedder import OpenAIEmbedder
 
 
 class ChromaVectorStore:
-    def __init__(self, persist_dir: str, embedder: OpenAIEmbedder, collection_name: str = "guidelines"):
+    def __init__(
+        self,
+        persist_dir: str,
+        embedder: OpenAIEmbedder,
+        collection_name: str = "guidelines",
+    ):
         self.client = chromadb.PersistentClient(
             path=persist_dir,
             settings=ChromaSettings(anonymized_telemetry=False),

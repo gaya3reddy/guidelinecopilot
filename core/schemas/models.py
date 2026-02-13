@@ -39,6 +39,7 @@ class DocInfo(BaseModel):
     source: str | None = None
     category: str | None = None
 
+
 class DocList(BaseModel):
     items: list[DocInfo]
 
