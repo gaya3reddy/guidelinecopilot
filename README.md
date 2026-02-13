@@ -23,7 +23,6 @@ GuidelineCopilot is a production-oriented Retrieval-Augmented Generation (RAG) s
 
 Add your exported diagram here (recommended: **SVG** for crisp rendering):
 
-```md
 ![Architecture](docs/architecture.svg)
 ```
 
