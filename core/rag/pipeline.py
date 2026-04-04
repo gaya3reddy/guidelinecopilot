@@ -48,8 +48,11 @@ def answer_question(
     # --- NEW: retrieval logic ---
     retrieved: list[dict] = []
     if mode == "no_rag":
+        system_prompt = "You are a helpful medical assistant. Answer from your general knowledge."
+        user_prompt = question
         retrieved = []
     else:
+        system_prompt = ASK_SYSTEM
         doc_ids = doc_ids or []
         if len(doc_ids) == 0:
             retrieved = store.query(question=question, top_k=top_k, doc_id=None)
@@ -73,7 +76,7 @@ Guideline excerpts:
     resp = client.chat.completions.create(
         model=settings.openai_chat_model,
         messages=[
-            {"role": "system", "content": ASK_SYSTEM},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.2,
@@ -83,16 +86,26 @@ Guideline excerpts:
     return {"answer": answer, "citations": retrieved}
 
 
-def _summarize_retrieval_query(style: str) -> str:
+# def _summarize_retrieval_query(style: str) -> str:
+#     style = (style or "tldr").lower()
+#     if style == "key_steps":
+#         return "key steps recommendations algorithm workflow what to do"
+#     if style == "contraindications":
+#         return "contraindications warnings precautions adverse events do not use avoid"
+#     if style == "eligibility":
+#         return "eligibility criteria inclusion exclusion who qualifies indications"
+#     return "summary overview key recommendations purpose scope main findings"
+def _summarize_retrieval_query(style: str, title: str | None = None) -> str:
     style = (style or "tldr").lower()
-    if style == "key_steps":
-        return "key steps recommendations algorithm workflow what to do"
-    if style == "contraindications":
-        return "contraindications warnings precautions adverse events do not use avoid"
-    if style == "eligibility":
-        return "eligibility criteria inclusion exclusion who qualifies indications"
-    return "summary overview key recommendations purpose scope"
+    prefix = f"{title} " if title else ""
 
+    if style == "key_steps":
+        return f"{prefix}key steps recommendations algorithm workflow what to do"
+    if style == "contraindications":
+        return f"{prefix}contraindications warnings precautions adverse events do not use avoid"
+    if style == "eligibility":
+        return f"{prefix}eligibility criteria inclusion exclusion who qualifies indications"
+    return f"{prefix}summary overview key recommendations purpose scope"
 
 def _summarize_user_prompt(style: str, context: str) -> str:
     style = (style or "tldr").lower()
@@ -152,7 +165,13 @@ def summarize_guideline(
     if mode == "no_rag":
         retrieved = []
     else:
-        query = _summarize_retrieval_query(style)
+        # Look up title from ChromaDB metadata
+        doc_title = None
+        if doc_ids and len(doc_ids) == 1:
+            temp_results = store.query(question="title purpose scope", top_k=1, doc_id=doc_ids[0])
+            if temp_results:
+                doc_title = temp_results[0]["meta"].get("title")
+        query = _summarize_retrieval_query(style, title=doc_title)
         doc_ids = doc_ids or []
         if len(doc_ids) == 0:
             retrieved = store.query(question=query, top_k=top_k, doc_id=None)
