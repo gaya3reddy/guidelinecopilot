@@ -209,6 +209,10 @@ Response includes:
 - `/documents` registry is **in-memory** (resets on server restart). PDFs + Chroma persistence stay on disk.
 - Only **public guideline PDFs** are supported (no patient data).
 - Chunk quality depends on PDF text extraction quality (some PDFs contain headers/footers/license pages).
+- `/ask` average latency is ~5s, dominated by the LLM completion call (~3-4s).
+  Retrieval pipeline (embed + ChromaDB query) completes in under 400ms.
+- Large PDF ingest (270 pages, 1,792 chunks) takes ~2-3 minutes due to sequential
+  OpenAI embedding batches. Async ingest with background jobs is on the roadmap.
 
 ---
 
@@ -269,5 +273,21 @@ Response includes:
   - `ruff check .`
   - `pytest` (tests folder scaffold)
 - Cleaned up lint issues so `ruff` passes consistently
+
+### Day 8
+- **Bug fix: large PDF ingestion** — `upsert_chunks()` was sending all chunks to OpenAI
+  in a single embedding call, causing timeouts on large documents. Fixed by batching
+  in groups of 50 (`batch_size=50`) inside `core/retrieval/vectorstore.py`.
+- **Bug fix: `no_rag` mode** — mode toggle was not wired through to prompt logic.
+  `no_rag` now uses a plain assistant system prompt instead of the excerpt-only RAG prompt.
+- **Bug fix: doc-agnostic summarisation queries** — `_summarize_retrieval_query()` returned
+  generic strings regardless of document. Now prepends the doc title to the retrieval query,
+  improving `tldr` retrieval score from ~0.48 to 0.68.
+- **Dev workflow** — added code volume mount (`- .:/app`) to `docker-compose.yml` so code
+  changes apply with `docker compose restart api` instead of a full rebuild.
+- **Increased ingest timeout** — Streamlit UI timeout raised from 60s to 300s to handle
+  large PDFs during processing.
+- **Real-world validation** — successfully ingested 270-page WHO Hand Hygiene guideline
+  (1,792 chunks, ~36 embedding batches). Avg `/ask` latency ~5s on `gpt-4o-mini`.
 
 </details>

@@ -15,6 +15,7 @@ services:
     volumes:
       # Persist ingested PDFs + any processed artifacts
       - ./data:/app/data
+      - .:/app
     restart: unless-stopped
 
   ui:

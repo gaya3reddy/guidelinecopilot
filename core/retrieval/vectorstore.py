@@ -28,7 +28,8 @@ class ChromaVectorStore:
         title: str | None,
         source: str | None,
         category: str | None,
-        chunks: List[Dict[str, Any]],  # [{"id","text","page"}]
+        chunks: List[Dict[str, Any]],  # [{"id", "page", "text",}]
+        batch_size: int = 50,
     ) -> int:
         ids = [f"{doc_id}:{c['id']}" for c in chunks]
         docs = [c["text"] for c in chunks]
@@ -43,10 +44,25 @@ class ChromaVectorStore:
             }
             for c in chunks
         ]
+        # embs = self.embedder.embed(docs) # this can be slow example, 300 chunks, so we do it in batches
+        # Embed + upsert in batches to avoid OpenAI rate limits on large PDFs
+        total_indexed = 0
+        for i in range(0, len(chunks), batch_size):
+            batch_ids = ids[i : i + batch_size]
+            batch_docs = docs[i : i + batch_size]  # batch of text = 50 chunks
+            batch_metas = metas[i : i + batch_size]
 
-        embs = self.embedder.embed(docs)
-        self.col.upsert(ids=ids, documents=docs, metadatas=metas, embeddings=embs)
-        return len(ids)
+            batch_embs = self.embedder.embed(
+                batch_docs
+            )  # Doing this in batches to avoid rate limits
+            self.col.upsert(
+                ids=batch_ids,
+                documents=batch_docs,
+                metadatas=batch_metas,
+                embeddings=batch_embs,
+            )
+            total_indexed += len(batch_ids)
+        return total_indexed
 
     def query(
         self,

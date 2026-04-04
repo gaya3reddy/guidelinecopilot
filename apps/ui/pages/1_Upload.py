@@ -20,7 +20,7 @@ doc_id = st.text_input("doc_id (optional, leave empty to auto-generate)")
 if st.button("Ingest", type="primary", disabled=(uploaded is None)):
     files = {"file": (uploaded.name, uploaded.getvalue(), "application/pdf")}
     data = {"doc_id": doc_id, "title": title, "source": source, "category": category}
-    r = requests.post(f"{API_BASE}/ingest", files=files, data=data, timeout=60)
+    r = requests.post(f"{API_BASE}/ingest", files=files, data=data, timeout=300)
     if r.status_code >= 400:
         st.error(r.text)
     else:
