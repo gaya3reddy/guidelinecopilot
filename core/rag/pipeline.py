@@ -48,7 +48,9 @@ def answer_question(
     # --- NEW: retrieval logic ---
     retrieved: list[dict] = []
     if mode == "no_rag":
-        system_prompt = "You are a helpful medical assistant. Answer from your general knowledge."
+        system_prompt = (
+            "You are a helpful medical assistant. Answer from your general knowledge."
+        )
         user_prompt = question
         retrieved = []
     else:
@@ -106,6 +108,7 @@ def _summarize_retrieval_query(style: str, title: str | None = None) -> str:
     if style == "eligibility":
         return f"{prefix}eligibility criteria inclusion exclusion who qualifies indications"
     return f"{prefix}summary overview key recommendations purpose scope"
+
 
 def _summarize_user_prompt(style: str, context: str) -> str:
     style = (style or "tldr").lower()
@@ -168,7 +171,9 @@ def summarize_guideline(
         # Look up title from ChromaDB metadata
         doc_title = None
         if doc_ids and len(doc_ids) == 1:
-            temp_results = store.query(question="title purpose scope", top_k=1, doc_id=doc_ids[0])
+            temp_results = store.query(
+                question="title purpose scope", top_k=1, doc_id=doc_ids[0]
+            )
             if temp_results:
                 doc_title = temp_results[0]["meta"].get("title")
         query = _summarize_retrieval_query(style, title=doc_title)
