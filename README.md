@@ -209,8 +209,10 @@ Response includes:
 - `/documents` registry is **in-memory** (resets on server restart). PDFs + Chroma persistence stay on disk.
 - Only **public guideline PDFs** are supported (no patient data).
 - Chunk quality depends on PDF text extraction quality (some PDFs contain headers/footers/license pages).
-- `/ask` average latency is ~5s, dominated by the LLM completion call (~3-4s).
+- `/ask` uses streaming responses — first token appears in ~1s, full answer completes 
+  in ~2.5s (down from ~5s perceived wait before streaming was added).
   Retrieval pipeline (embed + ChromaDB query) completes in under 400ms.
+  LLM completion (~2-3s) dominates total latency.
 - Large PDF ingest (270 pages, 1,792 chunks) takes ~2-3 minutes due to sequential
   OpenAI embedding batches. Async ingest with background jobs is on the roadmap.
 
@@ -289,5 +291,14 @@ Response includes:
   large PDFs during processing.
 - **Real-world validation** — successfully ingested 270-page WHO Hand Hygiene guideline
   (1,792 chunks, ~36 embedding batches). Avg `/ask` latency ~5s on `gpt-4o-mini`.
+
+### Day 9
+- Added streaming responses for `/ask` endpoint:
+  - New `stream_answer()` generator in `core/rag/pipeline.py` using OpenAI `stream=True`
+  - New `POST /ask/stream` endpoint in `apps/api/routers/ask.py` using FastAPI `StreamingResponse`
+  - Updated `apps/ui/pages/2_Ask.py` to consume stream word-by-word with live cursor indicator `▌`
+  - Citations delivered as a single JSON line after stream completes (`__CITATIONS__:` sentinel)
+- Extracted `distance_to_score()` to `core/schemas/utils.py` — shared utility removing duplication between `ask.py` and `summarize.py`
+- Added UI volume mount (`- .:/app`) to `docker-compose.yml` so UI code changes apply with `docker compose restart ui` — no rebuild needed
 
 </details>
