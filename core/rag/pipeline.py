@@ -97,7 +97,7 @@ def stream_answer(
     mode: str = "rag",
 ) -> Generator[str, None, None]:
     """Yields answer tokens one by one, then yields citations as a JSON line."""
-    
+
     if not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY missing.")
 
@@ -125,7 +125,9 @@ def stream_answer(
     context = _build_context(retrieved)
 
     if mode == "no_rag":
-        system_prompt = "You are a helpful medical assistant. Answer from your general knowledge."
+        system_prompt = (
+            "You are a helpful medical assistant. Answer from your general knowledge."
+        )
         user_prompt = question
     else:
         system_prompt = ASK_SYSTEM

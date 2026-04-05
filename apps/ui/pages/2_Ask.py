@@ -93,7 +93,7 @@ if run:
                 full_answer += chunk
             answer_placeholder.markdown(full_answer + "▌")
 
-    answer_placeholder.markdown(full_answer)    
+    answer_placeholder.markdown(full_answer)
 
     cits = [
         {
@@ -141,5 +141,3 @@ if run:
     st.info(
         "Tip: Open the **Evidence** tab to view retrieved snippets as an audit trail."
     )
-    
-    
