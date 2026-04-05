@@ -8,6 +8,8 @@ from apps.api.config import settings
 from core.rag.prompts import ASK_SYSTEM
 from core.retrieval.embedder import OpenAIEmbedder
 from core.retrieval.vectorstore import ChromaVectorStore
+from typing import Generator
+import json
 
 
 def _build_context(citations: List[Dict[str, Any]]) -> str:
@@ -86,6 +88,68 @@ Guideline excerpts:
 
     answer = resp.choices[0].message.content.strip()
     return {"answer": answer, "citations": retrieved}
+
+
+def stream_answer(
+    question: str,
+    top_k: int = 5,
+    doc_ids: list[str] | None = None,
+    mode: str = "rag",
+) -> Generator[str, None, None]:
+    """Yields answer tokens one by one, then yields citations as a JSON line."""
+    
+    if not settings.openai_api_key:
+        raise ValueError("OPENAI_API_KEY missing.")
+
+    embedder = OpenAIEmbedder(
+        api_key=settings.openai_api_key, model=settings.openai_embed_model
+    )
+    store = ChromaVectorStore(
+        persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
+    )
+
+    retrieved: list[dict] = []
+    if mode != "no_rag":
+        doc_ids = doc_ids or []
+        if len(doc_ids) == 0:
+            retrieved = store.query(question=question, top_k=top_k, doc_id=None)
+        elif len(doc_ids) == 1:
+            retrieved = store.query(question=question, top_k=top_k, doc_id=doc_ids[0])
+        else:
+            per_doc = [
+                store.query(question=question, top_k=top_k, doc_id=did)
+                for did in doc_ids
+            ]
+            retrieved = _merge_and_topk(per_doc, top_k=top_k)
+
+    context = _build_context(retrieved)
+
+    if mode == "no_rag":
+        system_prompt = "You are a helpful medical assistant. Answer from your general knowledge."
+        user_prompt = question
+    else:
+        system_prompt = ASK_SYSTEM
+        user_prompt = f"Question: {question}\n\nGuideline excerpts:\n{context}"
+
+    client = OpenAI(api_key=settings.openai_api_key)
+    resp = client.chat.completions.create(
+        model=settings.openai_chat_model,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.2,
+        stream=True,  # enable streaming
+    )
+
+    # Stream answer tokens
+    for chunk in resp:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
+
+    # After stream ends, yield citations as a single JSON line
+    yield "\n\n__CITATIONS__:" + json.dumps(retrieved)
 
 
 # def _summarize_retrieval_query(style: str) -> str:

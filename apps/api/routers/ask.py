@@ -7,17 +7,11 @@ from fastapi import APIRouter, HTTPException
 from apps.api.config import settings
 from core.schemas.models import AskRequest, AskResponse, Meta, Citation
 from core.rag.pipeline import answer_question
+from fastapi.responses import StreamingResponse
+from core.rag.pipeline import stream_answer
+from core.schemas.utils import distance_to_score
 
 router = APIRouter(tags=["rag"])
-
-
-def _distance_to_score(distance: float) -> float:
-    # Chroma distances are "smaller is better".
-    # Convert to a 0..1 score (simple, stable).
-    # score = 1 / (1 + d)
-    s = 1.0 / (1.0 + max(0.0, float(distance)))
-    # clamp
-    return max(0.0, min(1.0, s))
 
 
 @router.post("/ask", response_model=AskResponse)
@@ -47,7 +41,7 @@ def ask(req: AskRequest) -> AskResponse:
                 page=int(meta.get("page") or 0),
                 chunk_id=str(meta.get("chunk_id", "")),
                 snippet=text[:350],  # keep UI readable
-                score=_distance_to_score(dist),
+                score=distance_to_score(dist),
             )
         )
 
@@ -61,3 +55,19 @@ def ask(req: AskRequest) -> AskResponse:
         prompt_version="ask_v1",
     )
     return AskResponse(answer=out["answer"], citations=citations, meta=meta)
+
+
+@router.post("/ask/stream")
+def ask_stream(req: AskRequest) -> StreamingResponse:
+    def generate():
+        try:
+            yield from stream_answer(
+                question=req.question,
+                top_k=req.top_k,
+                doc_ids=req.doc_ids,
+                mode=req.mode,
+            )
+        except Exception as e:
+            yield f"\n\n__ERROR__:{str(e)}"
+
+    return StreamingResponse(generate(), media_type="text/plain")

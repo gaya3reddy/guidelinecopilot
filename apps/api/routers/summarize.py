@@ -7,13 +7,9 @@ from fastapi import APIRouter, HTTPException
 from apps.api.config import settings
 from core.schemas.models import SummarizeRequest, SummarizeResponse, Meta, Citation
 from core.rag.pipeline import summarize_guideline
+from core.schemas.utils import distance_to_score
 
 router = APIRouter(tags=["summarize"])
-
-
-def _distance_to_score(distance: float) -> float:
-    s = 1.0 / (1.0 + max(0.0, float(distance)))
-    return max(0.0, min(1.0, s))
 
 
 @router.post("/summarize", response_model=SummarizeResponse)
@@ -42,7 +38,7 @@ def summarize(req: SummarizeRequest) -> SummarizeResponse:
                 page=int(meta.get("page") or 0),
                 chunk_id=str(meta.get("chunk_id", "")),
                 snippet=text[:350],
-                score=_distance_to_score(dist),
+                score=distance_to_score(dist),
             )
         )
 
