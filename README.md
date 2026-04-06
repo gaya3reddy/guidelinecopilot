@@ -210,9 +210,11 @@ Response includes:
 - Only **public guideline PDFs** are supported (no patient data).
 - Chunk quality depends on PDF text extraction quality (some PDFs contain headers/footers/license pages).
 - `/ask` uses streaming responses — first token appears in ~1s, full answer completes 
-  in ~2.5s (down from ~5s perceived wait before streaming was added).
+  in ~3s (down from ~5s perceived wait before streaming was added).
   Retrieval pipeline (embed + ChromaDB query) completes in under 400ms.
   LLM completion (~2-3s) dominates total latency.
+- `/documents` registry persists to disk at data/processed/registry.json
+  — survives container restarts. ChromaDB chunks also persist on disk.
 - Large PDF ingest (270 pages, 1,792 chunks) takes ~2-3 minutes due to sequential
   OpenAI embedding batches. Async ingest with background jobs is on the roadmap.
 
@@ -301,4 +303,18 @@ Response includes:
 - Extracted `distance_to_score()` to `core/schemas/utils.py` — shared utility removing duplication between `ask.py` and `summarize.py`
 - Added UI volume mount (`- .:/app`) to `docker-compose.yml` so UI code changes apply with `docker compose restart ui` — no rebuild needed
 
+### Day 10
+- Add persistent document registry (`core/registry/registry.py`):
+  - JSON-backed registry stored at `data/processed/registry.json`
+  - Survives container restarts — no more re-uploading docs after restart
+  - Deduplication now works across sessions (hash-based, persistent)
+  - Replaces in-memory `_DOCS` and `_HASH_TO_DOC` dicts in `ingest.py`
+- Add streaming responses for `/ask` endpoint (carried over from Day 9 branch):
+  - `stream_answer()` generator using OpenAI `stream=True`
+  - `POST /ask/stream` endpoint using FastAPI `StreamingResponse`
+  - Word-by-word rendering in UI with live cursor indicator `▌`
+  - Client-side latency timer — measured ~3-4s end-to-end
+- Extract `distance_to_score()` to `core/schemas/utils.py` — shared utility
+- Add UI volume mount to `docker-compose.yml` for faster dev loop
+- Add pre-commit hook (`ruff-format` + `ruff`) — auto-formats on every commit
 </details>
