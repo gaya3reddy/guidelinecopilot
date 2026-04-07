@@ -215,8 +215,10 @@ Response includes:
   LLM completion (~2-3s) dominates total latency.
 - `/documents` registry persists to disk at data/processed/registry.json
   — survives container restarts. ChromaDB chunks also persist on disk.
-- Large PDF ingest (270 pages, 1,792 chunks) takes ~2-3 minutes due to sequential
-  OpenAI embedding batches. Async ingest with background jobs is on the roadmap.
+- Large PDF ingest runs asynchronously — UI shows live progress bar while 
+  background worker embeds chunks in batches of 50. No blocking wait.
+- Job registry is in-memory — if the container restarts mid-ingest, 
+  the job status is lost but the PDF can be re-uploaded safely.
 
 ---
 
@@ -317,4 +319,13 @@ Response includes:
 - Extract `distance_to_score()` to `core/schemas/utils.py` — shared utility
 - Add UI volume mount to `docker-compose.yml` for faster dev loop
 - Add pre-commit hook (`ruff-format` + `ruff`) — auto-formats on every commit
+
+### Day 11
+- **Async ingest with live progress bar**:
+  - `POST /ingest` now returns `job_id` immediately (HTTP 202) via FastAPI `BackgroundTasks`
+  - New `GET /ingest/status/{job_id}` endpoint for progress polling
+  - New `apps/api/job_registry.py` — thread-safe in-memory job tracker with states: `pending → processing → done / error`
+  - UI polls every 2s showing live progress bar and chunk counter (e.g. "Embedding chunks... 350/1792")
+  - Fix: async file write using `asyncio.run_in_executor` to unblock HTTP response immediately
+  - Tested: 270-page WHO PDF (1792 chunks) completes with real-time progress
 </details>
