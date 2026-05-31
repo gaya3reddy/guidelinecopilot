@@ -26,6 +26,10 @@ dev = [
   "ruff",
   "black",
   "pre-commit",
+  # pinned: 0.2.15 is the last version compatible with this langchain stack
+  # requires manual patch to remove VertexAI import from ragas/llms/base.py
+  # see: eval/RAGAS_SETUP.md for instructions
+  "ragas==0.2.15",
 ]
 
 [tool.setuptools]
