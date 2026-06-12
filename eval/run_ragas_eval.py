@@ -133,13 +133,13 @@ def run_eval() -> dict:
         sys.exit(1)
 
     golden: list[dict] = json.loads(GOLDEN_PATH.read_text())
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("GuidelineCopilot — RAGAS Evaluation")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Golden dataset : {GOLDEN_PATH.name}  ({len(golden)} questions)")
     print(f"API endpoint   : {BASE_URL}")
     print(f"top_k          : {TOP_K}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # 2. Check API is reachable before starting
     try:
@@ -165,15 +165,15 @@ def run_eval() -> dict:
         doc_id = row["doc_id"]
         qtype = row.get("type", "unknown")
 
-        print(f"  [{i+1:02d}/{len(golden)}] ({qtype:>16})  {q[:60]}...")
+        print(f"  [{i + 1:02d}/{len(golden)}] ({qtype:>16})  {q[:60]}...")
 
         try:
             answer, contexts = call_ask(q, doc_id)
         except requests.HTTPError as e:
-            print(f"    [WARN] HTTP error for question {i+1}: {e} — skipping")
+            print(f"    [WARN] HTTP error for question {i + 1}: {e} — skipping")
             continue
         except Exception as e:
-            print(f"    [WARN] Unexpected error for question {i+1}: {e} — skipping")
+            print(f"    [WARN] Unexpected error for question {i + 1}: {e} — skipping")
             continue
 
         questions.append(q)
@@ -272,9 +272,9 @@ def run_eval() -> dict:
         }
 
     # 9. Print summary to console
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("RAGAS Results — Summary")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     all_passed = True
     for metric, score in scores.items():
         threshold = THRESHOLDS[metric]
@@ -283,9 +283,9 @@ def run_eval() -> dict:
             all_passed = False
         print(f"  {metric:<22} {score:.4f}   (threshold: {threshold})  {status}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Per question-type breakdown")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     for qtype, type_scores in type_breakdown.items():
         print(f"  {qtype}:")
         for metric, score in type_scores.items():
