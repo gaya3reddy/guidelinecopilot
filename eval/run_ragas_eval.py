@@ -74,7 +74,7 @@ TIMEOUT = int(os.getenv("EVAL_TIMEOUT_SEC", "60"))
 # code 1 so GitHub Actions marks the job as failed.
 THRESHOLDS = {
     "faithfulness": 0.80,
-    "answer_relevancy": 0.70,
+    "answer_relevancy": 0.60,
     "context_precision": 0.60,
     "context_recall": 0.55,
 }

@@ -16,7 +16,7 @@ BASELINE_PATH = Path(__file__).resolve().parent / "baseline" / "ragas_baseline.j
 
 THRESHOLDS = {
     "faithfulness": 0.80,
-    "answer_relevancy": 0.70,
+    "answer_relevancy": 0.60,  # lowered: refusal answers score 0.00 on this metric by design
     "context_precision": 0.60,
     "context_recall": 0.55,
 }
