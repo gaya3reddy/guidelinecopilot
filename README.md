@@ -124,36 +124,49 @@ Open:
 
 ## 🧪 Evaluation
 
-Run a small benchmark suite against the running API.
+GuidelineCopilot uses a two-layer evaluation approach: a heuristic harness for latency and citation coverage, and a RAGAS-based harness for LLM quality metrics.
 
-### Run
-1) Start API (local or Docker):
-```bash
-uvicorn apps.api.main:app --reload --port 8000
+### RAGAS Evaluation (LLM Quality)
+
+Measures four metrics against a 20-question golden dataset ([WHO Hand Hygiene guidelines](eval/golden/who_hand_hygiene.json)):
+
+| Metric | What it measures | Baseline | Threshold |
+|---|---|---|---|
+| Faithfulness | Answer stays within retrieved context (no hallucination) | 0.46 | 0.80 |
+| Answer relevancy | Answer addresses the question (not vague/off-topic) | 0.58 | 0.60 |
+| Context precision | Retrieved chunks are actually useful (low noise) | 0.40 | 0.60 |
+| Context recall | Retrieval found all chunks needed to answer correctly | 0.54 | 0.55 |
+
+> Scores are 0–1, higher is better. Baseline reflects current system state — improvements tracked in [`eval/RAGAS_SETUP.md`](eval/RAGAS_SETUP.md).
+
+**Run RAGAS eval** (requires running API + OpenAI key):
+```powershell
+# PowerShell
+$env:OPENAI_API_KEY = (Get-Content .env | Select-String "OPENAI_API_KEY" | ForEach-Object { $_ -replace "OPENAI_API_KEY=", "" })
+python -m eval.run_ragas_eval
 ```
-(or `docker compose up --build`)
 
-2) Run eval:
+**CI threshold gate** (no API needed — runs on every PR):
+```bash
+python eval/check_ragas_baseline.py
+```
+
+See [`eval/RAGAS_SETUP.md`](eval/RAGAS_SETUP.md) for setup notes, the ragas patch required, and full score history.
+
+---
+
+### Heuristic Evaluation (Latency + Coverage)
+
 ```bash
 python -m eval.run_eval
 ```
 
-Optional: point eval to a different base URL:
-```bash
-# Windows PowerShell example
-$env:EVAL_BASE_URL="http://localhost:8000"
-python -m eval.run_eval
-```
-
-### Output
-- Prints summary metrics to console
-- Saves a JSON report to `eval/reports/report_YYYYMMDD_HHMMSS.json`
-
-### What it measures
+Measures:
 - Latency: avg / p95 / max per endpoint
 - Citation coverage: % responses that include citations
-- Grounding overlap (heuristic): overlap between generated text and retrieved snippets
+- Grounding overlap: heuristic token overlap between output and retrieved snippets
 
+Output saved to `eval/reports/report_YYYYMMDD_HHMMSS.json`.
 ---
 
 ## 🔌 API Overview

@@ -1,0 +1,253 @@
+{
+  "timestamp": "20260612_155512",
+  "golden_dataset": "who_hand_hygiene.json",
+  "num_questions": 20,
+  "top_k": 5,
+  "scores": {
+    "faithfulness": 0.4563,
+    "answer_relevancy": 0.584,
+    "context_precision": 0.3959,
+    "context_recall": 0.5417
+  },
+  "thresholds": {
+    "faithfulness": 0.8,
+    "answer_relevancy": 0.7,
+    "context_precision": 0.6,
+    "context_recall": 0.55
+  },
+  "all_passed": false,
+  "type_breakdown": {
+    "synthesis": {
+      "faithfulness": 0.3231,
+      "answer_relevancy": 0.9818,
+      "context_precision": 0.6542,
+      "context_recall": 0.375
+    },
+    "contraindication": {
+      "faithfulness": 0.2917,
+      "answer_relevancy": 0.4672,
+      "context_precision": 0.4365,
+      "context_recall": 0.5833
+    },
+    "unanswerable": {
+      "faithfulness": 0.5,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.5
+    },
+    "factual": {
+      "faithfulness": 0.7917,
+      "answer_relevancy": 0.9817,
+      "context_precision": 0.6389,
+      "context_recall": 1.0
+    },
+    "terminology": {
+      "faithfulness": 0.375,
+      "answer_relevancy": 0.4892,
+      "context_precision": 0.25,
+      "context_recall": 0.25
+    }
+  },
+  "per_question": [
+    {
+      "question": "How long should alcohol-based handrub application last according to the WHO guidelines?",
+      "question_type": "factual",
+      "answer": "According to the WHO guidelines, the duration of the entire alcohol-based handrub procedure should be 20-30 seconds (doc_9f92c071 p.163). For surgical hand preparation, a minimum of three applications should be used for a period of 3 to 5 minutes (doc_9f92c071 p.64).",
+      "ground_truth": "Alcohol-based handrub should be applied for 20 to 30 seconds, rubbing hands together covering all surfaces until dry.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9548,
+      "context_precision": 0.5,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What is the minimum alcohol concentration recommended for hand antisepsis products?",
+      "question_type": "factual",
+      "answer": "The minimum alcohol concentration recommended for hand antisepsis products is 60%. Alcohol solutions containing 60\u201380% alcohol are considered most effective (doc_9f92c071 p.40).",
+      "ground_truth": "The WHO recommends alcohol concentrations of 60 to 80 percent for hand antisepsis.",
+      "faithfulness": 0.5,
+      "answer_relevancy": 1.0,
+      "context_precision": 0.25,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What does WHO recommend as the preferred method of hand decontamination when hands are not visibly soiled?",
+      "question_type": "factual",
+      "answer": "WHO recommends handrubbing with an alcohol-based handrub as the preferred method of hand decontamination when hands are not visibly soiled. Handrubbing is considered the gold standard technique for routine, day-to-day decontamination of hands, except in specific situations where handwashing with soap and water is required (doc_9f92c071 p.249).",
+      "ground_truth": "Alcohol-based handrub is the preferred method of hand decontamination when hands are not visibly soiled.",
+      "faithfulness": 0.6667,
+      "answer_relevancy": 0.987,
+      "context_precision": 0.8056,
+      "context_recall": 1.0
+    },
+    {
+      "question": "How long should hands be washed with soap and water according to the WHO technique?",
+      "question_type": "factual",
+      "answer": "According to the WHO technique, hands should be washed with soap and water for a duration of 40-60 seconds (doc_9f92c071 p.164).",
+      "ground_truth": "Handwashing with soap and water should last 40 to 60 seconds.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9848,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What are the five moments for hand hygiene defined by WHO?",
+      "question_type": "synthesis",
+      "answer": "The five moments for hand hygiene defined by WHO are:\n\n1. Before touching a patient.\n2. Before a clean/aseptic procedure.\n3. After body fluid exposure risk.\n4. After touching a patient.\n5. After touching patient surroundings (doc_9f92c071 p.131).",
+      "ground_truth": "The five moments are: before touching a patient, before a clean or aseptic procedure, after body fluid exposure risk, after touching a patient, and after touching patient surroundings.",
+      "faithfulness": 0.6,
+      "answer_relevancy": 1.0,
+      "context_precision": 0.7,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What are the main components of the WHO multimodal hand hygiene improvement strategy?",
+      "question_type": "synthesis",
+      "answer": "The main components of the WHO multimodal hand hygiene improvement strategy are:\n\n1. **System change**: This includes the availability of alcohol-based handrub at the point of patient care and/or access to a safe, continuous water supply and soap and towels.\n2. **Training and education**: Providing training for healthcare workers on hand hygiene practices.\n3. **Monitoring and feedback**: Regular monitoring of hand hygiene practices and providing feedback to healthcare workers.\n4. **Reminders in the workplace**: Implementing reminders in the healthcare setting to encourage hand hygiene.\n5. **Engagement of patients and families**: Involving patients and their families in hand hygiene promotion (doc_9f92c071 p.107).",
+      "ground_truth": "The WHO multimodal strategy consists of five components: system change, training and education, evaluation and feedback, reminders in the workplace, and institutional safety climate.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 1.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What barriers to hand hygiene compliance does WHO identify at the individual and institutional level?",
+      "question_type": "synthesis",
+      "answer": "The WHO identifies several barriers to hand hygiene compliance at both the individual and institutional levels:\n\n1. **Individual Level Barriers**:\n   - Lack of knowledge of guidelines for hand hygiene (doc_9f92c071 p.75).\n   - Lack of recognition of hand hygiene opportunities during patient care (doc_9f92c071 p.75).\n   - Belief among healthcare workers (HCWs) that they wash their hands when necessary, despite observations indicating otherwise (doc_9f92c071 p.75).\n   - Skin irritation caused by hand hygiene agents (doc_9f92c071 p.75).\n   - Forgetfulness and insufficient time for hand hygiene (doc_9f92c071 p.75).\n   - High workload and understaffing (doc_9f92c071 p.75).\n\n2. **Institutional Level Barriers**:\n   - Lack of active participation in hand hygiene promotion (doc_9f92c071 p.83).\n   - Lack of institutional priority for hand hygiene (doc_9f92c071 p.83).\n   - Lack of administrative sanction for non-compliance or rewards for compliance (doc_9f92c071 p.83).\n   - Lack of a safety climate or culture of personal accountability among HCWs (doc_9f92c071 p.83).\n   - Inaccessible hand hygiene supplies (doc_9f92c071 p.75).\n   - Poor logistics leading to limited procurement and replenishment of consumables (doc_9f92c071 p.141).",
+      "ground_truth": "Individual barriers include skin irritation, inaccessible supplies, forgetfulness, and time pressure. Institutional barriers include insufficient resources, lack of role models, and absence of active promotion.",
+      "faithfulness": 0.3077,
+      "answer_relevancy": 0.964,
+      "context_precision": 0.9167,
+      "context_recall": 0.0
+    },
+    {
+      "question": "How does WHO recommend monitoring hand hygiene compliance, and what methods are described?",
+      "question_type": "synthesis",
+      "answer": "WHO recommends monitoring hand hygiene compliance through both direct and indirect methods. \n\n1. **Direct Methods**: The gold standard for monitoring hand hygiene compliance is direct observation by a validated observer. This method is considered the most effective as it detects all hand hygiene opportunities (doc_9f92c071 p.166). \n\n2. **Indirect Methods**: These include monitoring the consumption of hand hygiene products (such as soap or handrub) and automated monitoring of the use of sinks and handrub dispensers (doc_9f92c071 p.166).\n\nAdditionally, WHO proposes a standardized hand hygiene observation method, which includes an \"Observation form\" for data collection and a \"Compliance calculation form\" for immediate performance feedback (doc_9f92c071 p.167). The five moments model is also suggested to aid in observation, helping to define hand hygiene opportunities and minimize inter-observer variation (doc_9f92c071 p.111).",
+      "ground_truth": "WHO recommends direct observation as the gold standard for compliance monitoring, supplemented by product consumption measurement and indirect electronic monitoring methods.",
+      "faithfulness": 0.3846,
+      "answer_relevancy": 0.9632,
+      "context_precision": 1.0,
+      "context_recall": 0.5
+    },
+    {
+      "question": "What is the ethanol concentration in WHO-recommended hand rub formulation I?",
+      "question_type": "terminology",
+      "answer": "The ethanol concentration in WHO-recommended hand rub formulation I is 80% v/v (doc_9f92c071 p.57).",
+      "ground_truth": "WHO hand rub formulation I contains 80 percent v/v ethanol.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.9977,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What is the isopropanol concentration in WHO hand rub formulation II?",
+      "question_type": "terminology",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "WHO hand rub formulation II contains 75 percent v/v isopropanol.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What does the term ABHR stand for and what is its purpose in infection prevention?",
+      "question_type": "terminology",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "ABHR stands for alcohol-based handrub. It is used for hand antisepsis to reduce the count of viable microorganisms on hands.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What pathogen does WHO specifically identify as requiring soap and water rather than handrub due to spore formation?",
+      "question_type": "terminology",
+      "answer": "The pathogen specifically identified by WHO as requiring soap and water rather than handrub due to spore formation is Clostridium difficile (C. difficile) (doc_9f92c071 p.250).",
+      "ground_truth": "Clostridium difficile, which forms spores that are not reliably eliminated by alcohol-based handrub, requires handwashing with soap and water.",
+      "faithfulness": 0.5,
+      "answer_relevancy": 0.959,
+      "context_precision": 1.0,
+      "context_recall": 1.0
+    },
+    {
+      "question": "When should soap and water be used instead of alcohol-based handrub?",
+      "question_type": "contraindication",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "Soap and water should be used when hands are visibly soiled with dirt or blood, after caring for a patient with suspected or confirmed Clostridium difficile infection, and in outbreak settings involving spore-forming organisms.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What skin conditions or circumstances contraindicate routine alcohol-based handrub use?",
+      "question_type": "contraindication",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "Frequent use of alcohol-based handrub can cause skin dryness and irritation. WHO recommends handrub formulations include an emollient such as glycerol to minimise this. Damaged or compromised skin should be assessed and staff should be directed to occupational health.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.3667,
+      "context_recall": 0.3333
+    },
+    {
+      "question": "What does WHO say about wearing rings or nail polish in relation to hand hygiene?",
+      "question_type": "contraindication",
+      "answer": "WHO guidelines indicate that healthcare workers (HCWs) should not wear artificial fingernails or extenders when having direct contact with patients, and natural nails should be kept short (approximately 0.5 cm long or \u00bc inch long) to minimize the risk of infection transmission (doc_9f92c071 p.141). Additionally, wearing rings may increase the frequency of hand contamination with potential healthcare-associated pathogens, and poorly maintained rings could harbor microorganisms that contaminate hands (doc_9f92c071 p.140). Freshly applied nail polish does not increase bacterial counts, but chipped nail polish may support the growth of more organisms (doc_9f92c071 p.141).",
+      "ground_truth": "WHO advises against wearing rings and nail polish during patient care as they can impede effective hand hygiene and harbour microorganisms.",
+      "faithfulness": 0.1667,
+      "answer_relevancy": 0.9232,
+      "context_precision": 0.7,
+      "context_recall": 1.0
+    },
+    {
+      "question": "Are artificial nails permitted for healthcare workers according to WHO hand hygiene guidelines?",
+      "question_type": "contraindication",
+      "answer": "According to the WHO hand hygiene guidelines, healthcare workers (HCWs) are recommended not to wear artificial fingernails or extenders when having direct contact with patients. This recommendation is based on the risks of transmission of infection to patients and HCWs (doc_9f92c071 p.141).",
+      "ground_truth": "WHO recommends that healthcare workers should not wear artificial nails or nail extensions when having direct contact with patients, as they are associated with higher microbial counts and healthcare-associated infections.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9457,
+      "context_precision": 0.6792,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What PPE should be worn during aerosol-generating procedures in the ICU?",
+      "question_type": "unanswerable",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "This guideline does not cover personal protective equipment for aerosol-generating procedures. It focuses specifically on hand hygiene practices.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "question": "What is the recommended disinfection protocol for surgical instruments between procedures?",
+      "question_type": "unanswerable",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "This guideline does not address surgical instrument disinfection or sterilisation protocols. It is limited to hand hygiene in healthcare settings.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 1.0
+    },
+    {
+      "question": "What is the WHO-recommended vaccination schedule for healthcare workers?",
+      "question_type": "unanswerable",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "This guideline does not cover vaccination schedules for healthcare workers. It is focused solely on hand hygiene.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 1.0
+    },
+    {
+      "question": "How should blood spills on floors be cleaned in a hospital ward?",
+      "question_type": "unanswerable",
+      "answer": "This topic is not covered in the provided guideline excerpts.",
+      "ground_truth": "This guideline does not cover environmental cleaning or blood spill management. It addresses hand hygiene practices for healthcare workers.",
+      "faithfulness": 0.0,
+      "answer_relevancy": 0.0,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    }
+  ]
+}
