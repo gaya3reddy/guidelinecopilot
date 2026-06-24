@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'Dockerfile.ui', '-t', 'us-central1-docker.pkg.dev/guidelinecopilot/guidelinecopilot/ui:latest', '.']
+images:
+  - 'us-central1-docker.pkg.dev/guidelinecopilot/guidelinecopilot/ui:latest'
