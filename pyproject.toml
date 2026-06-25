@@ -18,6 +18,7 @@ dependencies = [
   "chromadb",
   "sentence-transformers",
   "openai",
+  "rank-bm25",
 ]
 
 [project.optional-dependencies]

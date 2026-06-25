@@ -94,3 +94,24 @@ class ChromaVectorStore:
                 }
             )
         return out
+
+    def get_all_chunks(
+        self,
+        doc_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return all chunks from the collection (optionally filtered by doc_id).
+
+        Used by BM25Store to build its in-memory keyword index.
+        """
+        where = {"doc_id": doc_id} if doc_id else None
+        res = self.col.get(
+            where=where,
+            include=["documents", "metadatas"],
+        )
+        out: List[Dict[str, Any]] = []
+        docs = res.get("documents") or []
+        metas = res.get("metadatas") or []
+        ids = res.get("ids") or []
+        for chunk_id, doc, meta in zip(ids, docs, metas):
+            out.append({"id": chunk_id, "text": doc, "meta": meta})
+        return out

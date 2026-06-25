@@ -5,11 +5,13 @@ from typing import Any, Dict, List
 from openai import OpenAI
 
 from apps.api.config import settings
-from core.rag.prompts import ASK_SYSTEM
+from core.rag.prompts import ASK_SYSTEM, ASK_USER_SUFFIX
 from core.retrieval.embedder import OpenAIEmbedder
 from core.retrieval.vectorstore import ChromaVectorStore
 from typing import Generator
 import json
+from core.retrieval.bm25_store import BM25Store
+from core.retrieval.hybrid import HybridRetriever
 
 
 def _build_context(citations: List[Dict[str, Any]]) -> str:
@@ -46,35 +48,36 @@ def answer_question(
     store = ChromaVectorStore(
         persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
     )
+    bm25 = BM25Store(store.get_all_chunks())
+    retriever = HybridRetriever(vector_store=store, bm25_store=bm25)
 
-    # --- NEW: retrieval logic ---
+    # --- retrieval ---
     retrieved: list[dict] = []
     if mode == "no_rag":
         system_prompt = (
             "You are a helpful medical assistant. Answer from your general knowledge."
         )
-        user_prompt = question
-        retrieved = []
     else:
         system_prompt = ASK_SYSTEM
         doc_ids = doc_ids or []
         if len(doc_ids) == 0:
-            retrieved = store.query(question=question, top_k=top_k, doc_id=None)
+            retrieved = retriever.search(query=question, top_k=top_k, doc_id=None)
         elif len(doc_ids) == 1:
-            retrieved = store.query(question=question, top_k=top_k, doc_id=doc_ids[0])
+            retrieved = retriever.search(query=question, top_k=top_k, doc_id=doc_ids[0])
         else:
             per_doc = [
-                store.query(question=question, top_k=top_k, doc_id=did)
+                retriever.search(query=question, top_k=top_k, doc_id=did)
                 for did in doc_ids
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
     context = _build_context(retrieved)
-    user_prompt = f"""Question: {question}
-
-Guideline excerpts:
-{context}
-"""
+    if mode == "no_rag":
+        user_prompt = question
+    else:
+        user_prompt = (
+            f"Question: {question}\n\nGuideline excerpts:\n{context}{ASK_USER_SUFFIX}"
+        )
 
     client = OpenAI(api_key=settings.openai_api_key)
     resp = client.chat.completions.create(
@@ -107,17 +110,19 @@ def stream_answer(
     store = ChromaVectorStore(
         persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
     )
+    bm25 = BM25Store(store.get_all_chunks())
+    retriever = HybridRetriever(vector_store=store, bm25_store=bm25)
 
     retrieved: list[dict] = []
     if mode != "no_rag":
         doc_ids = doc_ids or []
         if len(doc_ids) == 0:
-            retrieved = store.query(question=question, top_k=top_k, doc_id=None)
+            retrieved = retriever.search(query=question, top_k=top_k, doc_id=None)
         elif len(doc_ids) == 1:
-            retrieved = store.query(question=question, top_k=top_k, doc_id=doc_ids[0])
+            retrieved = retriever.search(query=question, top_k=top_k, doc_id=doc_ids[0])
         else:
             per_doc = [
-                store.query(question=question, top_k=top_k, doc_id=did)
+                retriever.search(query=question, top_k=top_k, doc_id=did)
                 for did in doc_ids
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
@@ -131,7 +136,9 @@ def stream_answer(
         user_prompt = question
     else:
         system_prompt = ASK_SYSTEM
-        user_prompt = f"Question: {question}\n\nGuideline excerpts:\n{context}"
+        user_prompt = (
+            f"Question: {question}\n\nGuideline excerpts:\n{context}{ASK_USER_SUFFIX}"
+        )
 
     client = OpenAI(api_key=settings.openai_api_key)
     resp = client.chat.completions.create(
@@ -229,28 +236,32 @@ def summarize_guideline(
     store = ChromaVectorStore(
         persist_dir=str(settings.processed_dir / "chroma"), embedder=embedder
     )
+    bm25 = BM25Store(store.get_all_chunks())
+    retriever = HybridRetriever(vector_store=store, bm25_store=bm25)
 
     retrieved: list[dict] = []
     if mode == "no_rag":
         retrieved = []
     else:
-        # Look up title from ChromaDB metadata
+        # Look up title from ChromaDB metadata (vector-only is fine for this
+        # single metadata fetch — no keyword matching needed)
         doc_title = None
         if doc_ids and len(doc_ids) == 1:
-            temp_results = store.query(
-                question="title purpose scope", top_k=1, doc_id=doc_ids[0]
+            temp_results = retriever.search(
+                query="title purpose scope", top_k=1, doc_id=doc_ids[0]
             )
             if temp_results:
                 doc_title = temp_results[0]["meta"].get("title")
         query = _summarize_retrieval_query(style, title=doc_title)
         doc_ids = doc_ids or []
         if len(doc_ids) == 0:
-            retrieved = store.query(question=query, top_k=top_k, doc_id=None)
+            retrieved = retriever.search(query=query, top_k=top_k, doc_id=None)
         elif len(doc_ids) == 1:
-            retrieved = store.query(question=query, top_k=top_k, doc_id=doc_ids[0])
+            retrieved = retriever.search(query=query, top_k=top_k, doc_id=doc_ids[0])
         else:
             per_doc = [
-                store.query(question=query, top_k=top_k, doc_id=did) for did in doc_ids
+                retriever.search(query=query, top_k=top_k, doc_id=did)
+                for did in doc_ids
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
