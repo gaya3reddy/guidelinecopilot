@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 import uuid
 
@@ -14,6 +15,25 @@ from apps.api.routers.summarize import router as summarize_router
 from core.logging_config import get_logger
 
 logger = get_logger("api.middleware")
+
+
+def configure_uvicorn_logging() -> None:
+    """
+    Route uvicorn's loggers through our JSON formatter so all logs
+    go to stdout as structured JSON on Cloud Run instead of plain
+    text to stderr.
+    """
+    for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
+        uv_logger = logging.getLogger(name)
+        # Remove uvicorn's default stderr handlers
+        uv_logger.handlers.clear()
+        # Re-attach using our formatter (stdout + JSON on GCP)
+        get_logger(name)
+        uv_logger.propagate = False
+
+
+# Configure at import time so it takes effect before the server starts
+configure_uvicorn_logging()
 
 
 def create_app() -> FastAPI:
