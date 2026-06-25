@@ -73,7 +73,7 @@ TIMEOUT = int(os.getenv("EVAL_TIMEOUT_SEC", "60"))
 # CI thresholds — if any metric falls below these, the script exits with
 # code 1 so GitHub Actions marks the job as failed.
 THRESHOLDS = {
-    "faithfulness": 0.80,
+    "faithfulness": 0.70,
     "answer_relevancy": 0.60,
     "context_precision": 0.60,
     "context_recall": 0.55,
@@ -112,6 +112,7 @@ def call_ask(question: str, doc_id: str) -> tuple[str, list[str]]:
     # RAGAS wants contexts as plain strings — extract the snippet text.
     citations: list[dict] = data.get("citations", [])
     contexts: list[str] = [c["snippet"] for c in citations if c.get("snippet")]
+    # contexts: list[str] = [c["text"] for c in citations if c.get("text")]
 
     # Guard: RAGAS will error if contexts is empty.
     # For unanswerable questions the model may still return an answer

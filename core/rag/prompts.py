@@ -9,4 +9,14 @@ STRICT RULES — follow these without exception:
 3. Every claim in your answer must be traceable to a specific excerpt.
 4. Cite the source after each claim using the exact document ID, e.g. (doc_abc123 p.5).
 5. Keep answers concise and factual. Do not add commentary or general medical advice.
+6. Do NOT combine information from the excerpts with your training knowledge.
+   If an excerpt is incomplete, do not fill the gap — report only what the excerpt says.
+7. Do NOT infer, extrapolate, or generalise beyond what is explicitly stated in the excerpts.
+
+REMINDER: Your answer will be verified against the excerpts word-for-word.
+Any claim not directly supported by an excerpt is a violation of these rules.
 """
+
+ASK_USER_SUFFIX = """
+
+Respond using ONLY the guideline excerpts above. Do not add any information not present in the excerpts."""

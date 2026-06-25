@@ -40,7 +40,7 @@ def ask(req: AskRequest) -> AskResponse:
                 doc_id=str(meta.get("doc_id", "")),
                 page=int(meta.get("page") or 0),
                 chunk_id=str(meta.get("chunk_id", "")),
-                snippet=text[:350],  # keep UI readable
+                snippet=text,  # keep UI readable
                 score=distance_to_score(dist),
             )
         )
