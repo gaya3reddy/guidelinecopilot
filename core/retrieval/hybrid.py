@@ -1,9 +1,43 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from core.retrieval.bm25_store import BM25Store
 from core.retrieval.vectorstore import ChromaVectorStore
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Reranker helper
+# ---------------------------------------------------------------------------
+
+
+def _maybe_rerank(
+    query: str,
+    chunks: List[Dict[str, Any]],
+    top_k: int,
+) -> List[Dict[str, Any]]:
+    """Apply cross-encoder reranking if enabled; otherwise slice RRF results.
+
+    Silently falls back to RRF order if the reranker is unavailable
+    (import error, model load failure, etc.) so retrieval never breaks.
+    """
+    from apps.api.config import settings  # noqa: PLC0415
+
+    if not settings.reranker_enabled:
+        return chunks[:top_k]
+
+    try:
+        from core.retrieval.reranker import rerank  # noqa: PLC0415
+
+        return rerank(query, chunks, top_k=settings.reranker_top_k)
+    except Exception:
+        logger.warning(
+            "Reranker unavailable — falling back to RRF order", exc_info=True
+        )
+        return chunks[:top_k]
 
 
 # ---------------------------------------------------------------------------
@@ -123,12 +157,12 @@ class HybridRetriever:
             id_key="_uid",
         )
 
-        # Trim to top_k and clean up the internal key
-        top = fused[:top_k]
-        for item in top:
+        # Clean up internal key from all fused candidates before reranking
+        for item in fused:
             item.pop("_uid", None)
 
-        return top
+        # Rerank (or fall back to RRF slice if reranker is disabled/unavailable)
+        return _maybe_rerank(query, fused, top_k)
 
     def rebuild_bm25(self) -> None:
         """Reload the BM25 index from ChromaDB.
