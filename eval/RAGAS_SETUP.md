@@ -169,3 +169,33 @@ answerable question types is 0.72 (run 2026-06-25).
 Industry standard faithfulness targets for production RAG systems are 0.70–0.75.
 The original 0.80 threshold was aspirational. Lowered to 0.70 to reflect a realistic
 production target while still being a meaningful quality gate.
+---
+
+### After ruff fix + final hybrid search run (2026-06-25)
+
+| Metric             | Score  | Threshold | Status  |
+|--------------------|--------|-----------|---------|
+| faithfulness       | 0.6316 | 0.70      | ❌ FAIL |
+| answer_relevancy   | 0.6300 | 0.60      | ✅ PASS |
+| context_precision  | 0.5910 | 0.60      | ❌ FAIL |
+| context_recall     | 0.6667 | 0.55      | ✅ PASS |
+
+**What changed:** Fixed `context` undefined in `no_rag` path (F821 ruff error).
+Scores are stable vs previous run — this is the confirmed final state of the
+`feature/hybrid-search` branch.
+
+**Per-type breakdown:**
+
+| Type             | c_precision | c_recall | faithfulness |
+|------------------|-------------|----------|--------------|
+| contraindication | 1.00        | 0.83     | 0.93         |
+| synthesis        | 0.95        | 0.50     | 0.65         |
+| factual          | 0.55        | 0.75     | 1.00         |
+| terminology      | 0.46        | 0.75     | 0.58         |
+| unanswerable     | 0.00        | 0.50     | 0.00         |
+
+**Remaining gaps (both caused by unanswerable structural penalty):**
+- `context_precision` 0.59 vs 0.60 — excluding unanswerables: avg 0.74
+- `faithfulness` 0.63 vs 0.70 — excluding unanswerables: avg 0.79
+
+**Next:** Cross-encoder reranker to improve terminology faithfulness (0.58 → target 0.75+).
