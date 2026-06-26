@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import time
 import uuid
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
@@ -9,6 +10,7 @@ from apps.api.config import settings
 from apps.api.job_registry import JobStatus, job_registry
 from core.ingestion.chunker import chunk_pages
 from core.ingestion.pdf_loader import extract_pages
+from core.logging_config import get_logger
 from core.registry.registry import DocumentRegistry
 from core.retrieval.embedder import OpenAIEmbedder
 from core.retrieval.vectorstore import ChromaVectorStore
@@ -16,6 +18,7 @@ from core.schemas.models import DocInfo, DocList
 import asyncio
 
 router = APIRouter(tags=["ingestion"])
+logger = get_logger("api.ingest")
 
 registry = DocumentRegistry(settings.processed_dir / "registry.json")
 
@@ -52,12 +55,27 @@ def _run_ingest(
     category: str | None,
 ) -> None:
     """Background worker — runs in a thread."""
+    start = time.perf_counter()
+    logger.info(
+        "Ingest started",
+        extra={"job_id": job_id, "doc_id": doc_id, "title": title},
+    )
     try:
         job_registry.update(job_id, status=JobStatus.PROCESSING)
 
         pages = extract_pages(data)
         page_pairs = [(p.page, p.text) for p in pages]
         chunks = chunk_pages(page_pairs)
+
+        logger.info(
+            "PDF extracted",
+            extra={
+                "job_id": job_id,
+                "doc_id": doc_id,
+                "pages": len(pages),
+                "chunks": len(chunks),
+            },
+        )
 
         job_registry.update(
             job_id,
@@ -93,8 +111,25 @@ def _run_ingest(
 
         job_registry.set_done(job_id, pages=len(pages), chunks=indexed)
 
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        logger.info(
+            "Ingest complete",
+            extra={
+                "job_id": job_id,
+                "doc_id": doc_id,
+                "pages": len(pages),
+                "chunks_indexed": indexed,
+                "latency_ms": latency_ms,
+            },
+        )
+
     except Exception as e:
         job_registry.set_error(job_id, str(e))
+        logger.error(
+            f"Ingest failed: {e}",
+            extra={"job_id": job_id, "doc_id": doc_id},
+            exc_info=True,
+        )
 
 
 @router.post("/ingest", status_code=202)
@@ -115,6 +150,10 @@ async def ingest_pdf(
     # Deduplication
     existing_id = registry.get_by_hash(file_hash)
     if existing_id:
+        logger.warning(
+            "Duplicate PDF detected",
+            extra={"existing_doc_id": existing_id, "file_hash": file_hash[:12]},
+        )
         return JSONResponse(
             status_code=200,
             content={
@@ -144,7 +183,6 @@ async def ingest_pdf(
 
     # Save raw PDF
     out_path = settings.raw_dir / f"{safe_doc_id}.pdf"
-    # out_path.write_bytes(data)
     await asyncio.get_event_loop().run_in_executor(None, out_path.write_bytes, data)
 
     # Register metadata immediately
@@ -159,6 +197,11 @@ async def ingest_pdf(
     # Create job + kick off background task
     job_id = f"job_{uuid.uuid4().hex[:8]}"
     job_registry.create(job_id=job_id, doc_id=safe_doc_id)
+
+    logger.info(
+        "Ingest job queued",
+        extra={"job_id": job_id, "doc_id": safe_doc_id, "title": title},
+    )
 
     background_tasks.add_task(
         _run_ingest, job_id, safe_doc_id, data, title, source, category

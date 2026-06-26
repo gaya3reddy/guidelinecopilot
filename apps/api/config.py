@@ -4,7 +4,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from dotenv import load_dotenv
+from core.logging_config import get_logger
 
+_logger = get_logger("api.config")
 ENV_PATH = Path(__file__).resolve().parents[2] / ".env"  # project root/.env
 load_dotenv(dotenv_path=ENV_PATH)
 
@@ -67,7 +69,9 @@ class Settings:
             # We allow running without key for Day-1 skeleton (health endpoint),
             # but warn via logs later.
             openai_api_key = None
-        print("DEBUG OPENAI_API_KEY loaded:", bool(openai_api_key))
+        _logger.info(
+            "Settings loaded", extra={"openai_key_present": bool(openai_api_key)}
+        )
         return Settings(
             app_name=app_name,
             app_version=app_version,
