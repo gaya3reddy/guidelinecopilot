@@ -37,6 +37,10 @@ class Settings:
 
     max_upload_mb: int
 
+    reranker_enabled: bool
+    reranker_model: str
+    reranker_top_k: int
+
     @staticmethod
     def load() -> "Settings":
         app_name = os.getenv("APP_NAME", "guidelinecopilot-api")
@@ -56,6 +60,12 @@ class Settings:
         processed_dir = data_dir / "processed"
 
         max_upload_mb = int(os.getenv("MAX_UPLOAD_MB", "30"))
+
+        reranker_enabled = os.getenv("RERANKER_ENABLED", "true").lower() == "true"
+        reranker_model = os.getenv(
+            "RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        )
+        reranker_top_k = int(os.getenv("RERANKER_TOP_K", "5"))
 
         # Make dirs
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -85,6 +95,9 @@ class Settings:
             raw_dir=raw_dir,
             processed_dir=processed_dir,
             max_upload_mb=max_upload_mb,
+            reranker_enabled=reranker_enabled,
+            reranker_model=reranker_model,
+            reranker_top_k=reranker_top_k,
         )
 
 

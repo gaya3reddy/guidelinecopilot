@@ -14,6 +14,14 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 RUN pip install --no-cache-dir -e .
 
+# Cache cross-encoder model inside the image so Cloud Run cold starts are fast.
+# SENTENCE_TRANSFORMERS_HOME must be set before the download RUN step AND kept
+# at runtime so the cached model is found (not re-downloaded on every container).
+ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
+RUN python -c "\
+from sentence_transformers.cross_encoder import CrossEncoder; \
+CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
+
 COPY . /app
 
 EXPOSE 8000
