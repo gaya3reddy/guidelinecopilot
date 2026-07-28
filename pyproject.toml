@@ -19,6 +19,9 @@ dependencies = [
   "sentence-transformers",
   "openai",
   "rank-bm25",
+  "langgraph",
+  "langchain-openai",
+  "langchain-core",
 ]
 
 [project.optional-dependencies]

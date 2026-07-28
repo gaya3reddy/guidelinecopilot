@@ -23,6 +23,7 @@ class Meta(BaseModel):
     latency_ms: int
     model: str
     prompt_version: str
+    retries: int | None = None  # only populated by /ask/agentic; None for /ask
 
 
 class IngestResponse(BaseModel):

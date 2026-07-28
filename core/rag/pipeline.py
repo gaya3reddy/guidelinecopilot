@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from openai import OpenAI
 
 from apps.api.config import settings
+from core.rag.context import build_context
 from core.rag.prompts import ASK_SYSTEM, ASK_USER_SUFFIX
 from core.retrieval.embedder import OpenAIEmbedder
 from core.retrieval.vectorstore import ChromaVectorStore
@@ -12,17 +13,6 @@ from typing import Generator
 import json
 from core.retrieval.bm25_store import BM25Store
 from core.retrieval.hybrid import HybridRetriever
-
-
-def _build_context(citations: List[Dict[str, Any]]) -> str:
-    blocks = []
-    for i, c in enumerate(citations, start=1):
-        meta = c["meta"]
-        doc_id = meta.get("doc_id")
-        page = meta.get("page")
-        text = c["text"]
-        blocks.append(f"[{i}] ({doc_id} p.{page})\n{text}")
-    return "\n\n".join(blocks)
 
 
 def _merge_and_topk(results: list[list[dict]], top_k: int) -> list[dict]:
@@ -71,7 +61,7 @@ def answer_question(
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
-    context = _build_context(retrieved)
+    context = build_context(retrieved)
     if mode == "no_rag":
         user_prompt = question
     else:
@@ -127,7 +117,7 @@ def stream_answer(
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
-    context = _build_context(retrieved)
+    context = build_context(retrieved)
 
     if mode == "no_rag":
         system_prompt = (
@@ -265,7 +255,7 @@ def summarize_guideline(
             ]
             retrieved = _merge_and_topk(per_doc, top_k=top_k)
 
-    context = _build_context(retrieved)
+    context = build_context(retrieved)
 
     # separate system prompt for summarization (simpler + safer)
     summarize_system = (
