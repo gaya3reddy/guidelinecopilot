@@ -57,18 +57,24 @@ would silently change what CI is gating on.
 
 ### Results (2026-07-28)
 
+Compared against the actual current `/ask` baseline (post-reranker, `eval/baseline/ragas_baseline.json`) — **not** the pre-reranker baseline from an earlier stage of this project, which this doc mistakenly used in an earlier draft.
+
 | Metric | Baseline `/ask` | Agentic (`MAX_RETRIES=2`) | Agentic (`MAX_RETRIES=1`, shipped) |
 |---|---|---|---|
-| faithfulness | 0.63 | 0.822 | 0.805 |
-| answer_relevancy | 0.63 | 0.780 | 0.781 |
-| context_precision | 0.59 | 0.659 | 0.669 |
-| context_recall | 0.67 | 0.792 | 0.842 |
-| **Passing (of 4)** | 2/4 | 4/4 | 4/4 |
+| faithfulness | 0.726 | 0.822 | 0.805 |
+| answer_relevancy | 0.730 | 0.780 | 0.781 |
+| context_precision | 0.634 | 0.659 | 0.669 |
+| context_recall | 0.792 | 0.792 | 0.842 |
+| **Passing (of 4)** | 4/4 (already passing pre-agentic) | 4/4 | 4/4 |
 
-All four metrics improved over baseline under both retry configurations.
-`MAX_RETRIES=1` matched or beat `MAX_RETRIES=2` on every metric — the
+The baseline `/ask` pipeline was already passing all four thresholds after the
+Day 13 reranker work — agentic retrieval doesn't flip any metric from fail to
+pass. What it does is improve all four by roughly 5–11% on top of an
+already-strong baseline: faithfulness +0.079, answer_relevancy +0.051,
+context_precision +0.035, context_recall +0.050 (retries=1 config).
+`MAX_RETRIES=1` matched or beat `MAX_RETRIES=2` on 3 of 4 metrics — the
 quality gain from self-correction saturates after one rewrite; a second
-retry attempt did not earn its cost. See ablation below.
+retry attempt did not earn its additional cost. See ablation below.
 
 **n=20 caveat:** the golden dataset is small. Treat these as directionally
 strong evidence, not tight-confidence-interval results.

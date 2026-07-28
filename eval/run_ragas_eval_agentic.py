@@ -37,11 +37,11 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
-import requests
 import numpy as np
+import requests
 
 # ---------------------------------------------------------------------------
 # RAGAS imports
@@ -149,7 +149,7 @@ def run_eval() -> dict:
     try:
         health = requests.get(f"{BASE_URL}/health", timeout=5)
         health.raise_for_status()
-    except Exception as e:
+    except requests.RequestException as e:
         print(f"[ERROR] API not reachable at {BASE_URL}/health — {e}")
         print("  Start it with: uvicorn apps.api.main:app --reload --port 8000")
         sys.exit(1)
@@ -176,7 +176,8 @@ def run_eval() -> dict:
         except requests.HTTPError as e:
             print(f"    [WARN] HTTP error for question {i + 1}: {e} — skipping")
             continue
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — deliberately broad: one bad
+            # question must not kill the rest of a 20-question batch eval run
             print(f"    [WARN] Unexpected error for question {i + 1}: {e} — skipping")
             continue
 
@@ -296,7 +297,7 @@ def run_eval() -> dict:
             print(f"    {metric:<22} {score:.4f}")
 
     # 10. Save full timestamped report
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     report = {
         "timestamp": timestamp,
         "golden_dataset": GOLDEN_PATH.name,

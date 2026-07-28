@@ -50,7 +50,7 @@ def main() -> None:
 
     try:
         requests.get(f"{BASE_URL}/health", timeout=5).raise_for_status()
-    except Exception as e:
+    except requests.RequestException as e:
         print(f"[ERROR] API not reachable at {BASE_URL}/health — {e}")
         print("  Start it with: uvicorn apps.api.main:app --reload --port 8000")
         sys.exit(1)
@@ -65,7 +65,8 @@ def main() -> None:
         try:
             plain = call("/ask", q, doc_id)
             agentic = call("/ask/agentic", q, doc_id)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — deliberately broad: one bad
+            # question must not kill the rest of a 20-question comparison run
             print(f"    [WARN] skipped — {e}")
             continue
 
@@ -107,7 +108,7 @@ def main() -> None:
     print(f"\n{'=' * 60}")
     print("Per question-type breakdown")
     print(f"{'=' * 60}")
-    types = sorted(set(r["question_type"] for r in rows))
+    types = sorted({r["question_type"] for r in rows})
     for qtype in types:
         type_rows = [r for r in rows if r["question_type"] == qtype]
         tn = len(type_rows)
