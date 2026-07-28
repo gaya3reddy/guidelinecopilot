@@ -19,6 +19,9 @@ dependencies = [
   "sentence-transformers",
   "openai",
   "rank-bm25",
+  "langgraph",
+  "langchain-openai",
+  "langchain-core",
 ]
 
 [project.optional-dependencies]
@@ -44,3 +47,14 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
+[tool.ruff.lint]
+# Pinned explicitly because "ruff" is an unpinned dev dependency — a fresh
+# CI install grabs whatever version is current, and ruff has expanded its
+# default rule selection over time. Without this, CI's lint step silently
+# starts checking new rule categories (e.g. flake8-bugbear, pyupgrade,
+# flake8-datetimez) whenever a new ruff release ships, which can fail CI
+# on code that hasn't changed. E4/E7/E9/F is ruff's traditional
+# conservative default (pycodestyle errors + pyflakes) and matches what
+# this project's CI was implicitly relying on before this pin was added.
+# Expand deliberately, not by accident of a `pip install` timing.
+select = ["E4", "E7", "E9", "F"]

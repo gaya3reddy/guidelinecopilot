@@ -12,6 +12,7 @@ GuidelineCopilot is a production-oriented Retrieval-Augmented Generation (RAG) s
 
 - **Precision ingestion**: PDF processing with **hash-based duplicate detection** and a structured **document registry** for consistent indexing.
 - **Evidence-first Q&A** (`/ask`): Context-aware answers paired with granular citations (**doc_id, page, chunk_id, similarity score**).
+- **Agentic RAG** (`/ask/agentic`): LangGraph self-correcting retrieval loop — an LLM grades retrieval quality and rewrites the query before generating, instead of a single-shot attempt. +5-11% across all 4 RAGAS metrics over the already-passing baseline.
 - **Audit-ready UI**: Dedicated **Evidence/Audit** view to inspect retrieved snippets and verify what the model used.
 - **Structured summarization** (`/summarize`): Modes optimized for clinical reading: `tldr`, `key_steps`, `contraindications`, `eligibility`.
 - **Evaluation harness**: Tracks **latency (avg/p95/max)**, citation coverage, and heuristic grounding overlap.
@@ -37,6 +38,7 @@ GuidelineCopilot is a production-oriented Retrieval-Augmented Generation (RAG) s
 - **ChromaDB** (persistent vector store)
 - **rank-bm25** (keyword index for hybrid BM25 + vector retrieval)
 - **sentence-transformers** (cross-encoder reranker: `ms-marco-MiniLM-L-6-v2`)
+- **LangGraph / LangChain** (agentic self-correcting retrieval loop for `/ask/agentic`)
 - **Docker / Docker Compose** (reproducible runtime)
 - **GitHub Actions** (CI)
 ---
@@ -157,6 +159,31 @@ See [`eval/RAGAS_SETUP.md`](eval/RAGAS_SETUP.md) for setup notes, the ragas patc
 
 ---
 
+### Agentic RAG Evaluation (`/ask/agentic` vs. `/ask`)
+
+Same golden dataset, same four metrics, run against the LangGraph self-correcting retrieval loop (`retrieve → grade → generate`, or `rewrite_query` and retry) instead of single-shot retrieval. Full architecture + evaluation writeup in [`docs/AGENTIC_RAG.md`](docs/AGENTIC_RAG.md).
+
+| Metric | Baseline `/ask` | Agentic `/ask/agentic` | Change |
+|---|---|---|---|
+| Faithfulness | 0.726 | 0.805 | +0.079 |
+| Answer relevancy | 0.730 | 0.781 | +0.051 |
+| Context precision | 0.634 | 0.669 | +0.035 |
+| Context recall | 0.792 | 0.842 | +0.050 |
+
+> Baseline `/ask` was already passing all 4 thresholds post-reranker — agentic retrieval doesn't flip pass/fail, it improves each metric ~5-11% on top of an already-strong baseline. Costs ~54-62% more latency on average, concentrated almost entirely on questions that actually trigger a retry (e.g. out-of-corpus questions: +255% latency, but these correctly fall back to the existing "not covered" refusal either way). An ablation comparing `MAX_RETRIES=1` vs `2` found 1 retry captures essentially all the quality gain — shipped as the default. See `eval/run_ragas_eval_agentic.py` and `scripts/compare_endpoints.py`.
+
+**Run agentic RAGAS eval:**
+```powershell
+python -m eval.run_ragas_eval_agentic
+```
+
+**Compare latency vs. baseline:**
+```powershell
+python -m scripts.compare_endpoints
+```
+
+---
+
 ### Heuristic Evaluation (Latency + Coverage)
 
 ```bash
@@ -202,6 +229,12 @@ Response includes:
 - `answer`
 - `citations[]` with `doc_id`, `page`, `chunk_id`, `snippet`, `score`
 
+### `POST /ask/agentic`
+Same request/response contract as `/ask` — drop-in replacement. Retrieval runs through a LangGraph self-correcting loop (`retrieve → grade_documents → generate`, or `rewrite_query` and retry, capped at `MAX_RETRIES=1`) instead of a single-shot hybrid search. See [`docs/AGENTIC_RAG.md`](docs/AGENTIC_RAG.md) for architecture + evaluation details.
+
+Response `meta` includes an extra field vs. `/ask`:
+- `retries`: number of query rewrites attempted before generating (0 if first retrieval was sufficient)
+
 ### `POST /summarize`
 Grounded summary over guideline chunks.
 
@@ -240,7 +273,7 @@ Response includes:
 ## 📌 Build Log (Day-by-day)
 
 <details>
-<summary>Show day-by-day build notes (Day 1 → Day 13)</summary>
+<summary>Show day-by-day build notes (Day 1 → Day 14)</summary>
 
 ### Day 1
 - Upload & ingest guideline PDFs
@@ -364,5 +397,15 @@ Response includes:
 - **9 new tests** in `tests/test_reranker.py` — all mocked, no model download in CI; total suite: 53 tests
 - **CI fix**: aligned `check_ragas_baseline.py` faithfulness threshold (0.80 → 0.70) to match `run_ragas_eval.py`; committed updated baseline post-reranker
 - **Result**: faithfulness 0.63 → **0.73** ✅, answer_relevancy 0.63 → **0.73** ✅, context_precision 0.59 → **0.63** ✅, context_recall 0.67 → **0.79** ✅ — **all 4 RAGAS metrics now passing**
+
+### Day 14
+- **Agentic RAG via LangGraph** (`feature/agentic-rag`) — new `/ask/agentic` endpoint alongside `/ask`:
+  - `core/graph/` — `StateGraph` with 4 nodes: `retrieve` (wraps existing `HybridRetriever`, unchanged), `grade_documents` (LLM judge via `ChatOpenAI.with_structured_output`, strict yes/no on retrieval sufficiency), `rewrite_query` (reformulates from `original_question`, not the prior rewrite, to avoid compounding drift), `generate` (same `ASK_SYSTEM` prompt as `/ask`, unchanged)
+  - Conditional edge (`decide_to_generate`) caps retries and always falls through to `generate()` — degrades gracefully into the existing "not covered" refusal rather than looping or erroring on genuinely out-of-corpus questions
+  - Extracted `_build_context` → `core/rag/context.py` and citation-building → `core/schemas/utils.py` so both `/ask` and `/ask/agentic` share one implementation, not two copies
+  - **15 new tests** (`test_routing.py`, `test_grade_documents.py`, `test_rewrite_query.py`) — mocked LLM calls, covering the 3 places a bug would fail silently (retry-cap logic, grading, rewrite anchoring); `retrieve`/`generate` left to RAGAS validation, matching the existing project convention of not unit-testing `answer_question()` either
+  - **RAGAS** (vs. already-passing `/ask` baseline): faithfulness 0.726 → **0.805**, answer_relevancy 0.730 → **0.781**, context_precision 0.634 → **0.669**, context_recall 0.792 → **0.842** — all 4 metrics improved ~5-11% on top of an already-4/4-passing baseline
+  - **Ablation**: compared `MAX_RETRIES=1` vs `2` — retries=1 matched or beat retries=2 on 3/4 metrics while cutting worst-case (`unanswerable`-question) latency ~28% (11.0s → 7.9s avg); shipped `MAX_RETRIES=1` as the default
+  - Full writeup: [`docs/AGENTIC_RAG.md`](docs/AGENTIC_RAG.md)
 
 </details>
